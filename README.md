@@ -20,7 +20,7 @@ Plataforma que permite registrar, asignar y hacer seguimiento de incidencias de 
 
 | Integrante | N° Módulo | Descripción del Módulo |
 |------------|-----------|------------------------|
-| Montenegro Urrutia, Juan Diego Chatita | 1 | Autenticación y usuarios |
+| Montenegro Urrutia, Juan Diego | 1 | Autenticación y usuarios |
 | Timaná Novoa, Juan Diego | 2 | Registro de tickets con evidencias |
 | Seminario Bautista, Lorena Marialya | 3 | Asignación, estados e historial |
 | Ordoñez Cavero, Martín Benjamín | 4 | SLA y semáforo visual |
