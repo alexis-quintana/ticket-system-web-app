@@ -1,5 +1,5 @@
 # ticket-system-web-app
-Sistema web de getión de tickets de Soporte TI con seguimiento de SLA, notificaciones y reportes. Desarrollado con Python, Flask y MySQL
+Sistema web de gestión de tickets de Soporte TI con seguimiento de SLA, notificaciones y reportes. Desarrollado con Python, Flask y MySQL
 
 # Aplicación Web del Sistema de Tickets de Soporte TI
 
