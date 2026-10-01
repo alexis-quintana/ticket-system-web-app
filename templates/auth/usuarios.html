@@ -1,0 +1,151 @@
+{% extends "auth/_layout.html" %}
+{% block title %}Usuarios{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/validacion.css') }}">{% endblock %}
+{% block content %}
+<div class="users-heading">
+  <div>
+    <h1 id="page-title">Usuarios</h1>
+    <p class="page-description">Registra cuentas y administra sus roles y estado.</p>
+  </div>
+  <button class="button" id="btn-nuevo" data-bs-toggle="modal" data-bs-target="#modal-usuario">+ Registrar
+    usuario</button>
+</div>
+
+<form method="get" class="row g-2 align-items-end my-3">
+  <div class="col-md-4"><label class="form-label small fw-semibold">Buscar</label>
+    <input class="form-control" name="q" value="{{ f.q }}" placeholder="Nombre o correo">
+  </div>
+  <div class="col-md-3"><label class="form-label small fw-semibold">Rol</label>
+    <select class="form-select" name="rol">
+      <option value="">Todos los roles</option>
+      {% for r in roles %}<option {{ 'selected' if f.rol==r }}>{{ r }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3"><label class="form-label small fw-semibold">Estado</label>
+    <select class="form-select" name="activo">
+      <option value="">Todos</option>
+      <option value="1" {{ 'selected' if f.activo=='1' }}>Activo</option>
+      <option value="0" {{ 'selected' if f.activo=='0' }}>Inactivo</option>
+    </select>
+  </div>
+  <div class="col-md-2 d-flex gap-2"><button class="btn btn-dark">Filtrar</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('auth.usuarios') }}">Limpiar</a>
+  </div>
+</form>
+
+<p class="text-muted small">{{ usuarios|length }} usuario(s)</p>
+<div class="users-table-wrap">
+  <table class="table table-hover align-middle mb-0">
+    <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Rol</th>
+        <th>Área</th>
+        <th>Estado</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in usuarios %}
+      <tr>
+        <td><strong>{{ u.nombres }} {{ u.apellidos }}</strong><br><small class="text-muted">{{ u.email }}{% if u.dni %}
+            · DNI {{ u.dni }}{% endif %}</small></td>
+        <td><span
+            class="badge text-bg-{{ {'Administrador':'dark','Técnico':'primary','Solicitante':'info'}[u.rol] }}">{{
+            u.rol }}</span></td>
+        <td>{{ u.area or '—' }}</td>
+        <td><span class="badge text-bg-{{ 'success' if u.activo else 'secondary' }}">{{ 'Activo' if u.activo else
+            'Inactivo' }}</span></td>
+        <td><button class="btn btn-sm btn-outline-dark btn-editar" data-id="{{ u.id }}" data-nombres="{{ u.nombres }}"
+            data-apellidos="{{ u.apellidos }}" data-dni="{{ u.dni or '' }}" data-telefono="{{ u.telefono or '' }}"
+            data-email="{{ u.email }}" data-rol="{{ u.rol }}" data-area="{{ u.area_id or '' }}"
+            data-activo="{{ u.activo }}" data-bs-toggle="modal" data-bs-target="#modal-usuario">Editar</button></td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="5" class="text-center text-muted py-4">No hay usuarios que coincidan con los filtros.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<!-- Modal crear / editar (Bootstrap) -->
+<div class="modal fade" id="modal-usuario" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form class="modal-content" id="signup" method="post" action="{{ url_for('auth.procesar_usuario') }}" novalidate>
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-titulo">Registrar usuario</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body vstack gap-2">
+        <input type="hidden" name="id" id="u-id">
+        <div class="row g-2">
+          <div class="col-6 form-field"><label class="form-label">Nombres *</label>
+            <input class="form-control" name="nombres" id="username" maxlength="60" autocomplete="off"><small></small>
+          </div>
+          <div class="col-6 form-field"><label class="form-label">Apellidos *</label>
+            <input class="form-control" name="apellidos" id="apellidos" maxlength="60"
+              autocomplete="off"><small></small>
+          </div>
+        </div>
+        <div class="row g-2">
+          <div class="col-6 form-field"><label class="form-label">DNI</label>
+            <input class="form-control" name="dni" id="dni" maxlength="8" inputmode="numeric"
+              autocomplete="off"><small></small>
+          </div>
+          <div class="col-6 form-field"><label class="form-label">Teléfono</label>
+            <input class="form-control" name="telefono" id="telefono" maxlength="15" inputmode="numeric"
+              autocomplete="off"><small></small>
+          </div>
+        </div>
+        <div class="form-field"><label class="form-label">Correo electrónico *</label>
+          <input class="form-control" name="email" id="email" maxlength="160" autocomplete="off"><small></small>
+        </div>
+        <div class="row g-3">
+          <div class="col-6"><label class="form-label">Rol *</label>
+            <select class="form-select" name="rol" id="u-rol">{% for r in roles %}<option>{{ r }}</option>{% endfor
+              %}</select>
+          </div>
+          <div class="col-6"><label class="form-label">Área</label>
+            <select class="form-select" name="area_id" id="u-area">
+              <option value="">— Sin área —</option>
+              {% for a in areas %}<option value="{{ a.id }}">{{ a.nombre }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-field"><label class="form-label" id="u-pass-label">Contraseña *</label>
+          <input class="form-control" type="password" name="password" id="password"
+            autocomplete="new-password"><small></small>
+          <div class="form-text" id="u-pass-help" hidden>Déjala vacía para conservar la actual.</div>
+        </div>
+        <div class="form-field"><label class="form-label">Confirmar contraseña</label>
+          <input class="form-control" type="password" id="confirm-password" autocomplete="new-password"><small></small>
+        </div>
+        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="activo" id="u-activo"
+            checked>
+          <label class="form-check-label" for="u-activo">Cuenta activa</label>
+        </div>
+        <div id="mensaje"></div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-outline-secondary"
+          data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-dark" id="u-guardar">Registrar usuario</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Confirmación antes de enviar (como en clase) -->
+<div id="confirmModal" class="confirm-overlay hidden">
+  <div class="confirm-box">
+    <p>¿Estás seguro de que deseas enviar el formulario?</p>
+    <div class="confirm-actions">
+      <button id="confirmYes" class="btn btn-dark">Sí, enviar</button>
+      <button id="confirmNo" class="btn btn-outline-secondary">Cancelar</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/usuarios.js') }}"></script>{% endblock %}
