@@ -1,0 +1,26 @@
+/* Acabados compartidos de la identidad visual Lexfixer. */
+.breadcrumbs{margin:0 0 20px;font-size:13px;line-height:1.6;color:var(--color-muted)}
+.breadcrumbs ol{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;list-style:none;margin:0;padding:0}
+.breadcrumbs li{display:inline-flex;align-items:center;gap:10px;min-width:0}
+.breadcrumbs li+li::before{content:"/";color:#8493a0}
+.breadcrumbs a{color:var(--color-muted);text-decoration:none;padding:4px 0;text-underline-offset:3px}
+.breadcrumbs a:hover{text-decoration:underline;color:var(--color-navigation)}
+.breadcrumbs [aria-current=page]{color:var(--color-navigation);font-weight:600}
+@media print{.breadcrumbs{display:none!important}}
+@media(min-width:801px){.sidebar{position:sticky;top:0;height:100dvh;min-height:0;overflow-y:auto}.sidebar-footer{padding-top:24px}.sidebar nav{gap:6px}.sidebar-brand{flex-shrink:0}.app-shell{align-items:start}.topbar{position:sticky;top:12px;z-index:15;box-shadow:0 4px 20px #23344008}}
+.nav-item.is-active{background:#ffffff1a;box-shadow:inset 3px 0 #91b3c1}
+.app-shell .button,body:has(.app-shell) dialog .button{min-height:42px;border-radius:12px;font-size:14px;background:var(--color-navigation)}
+.app-shell .secondary-button,.table-tools button{min-height:40px;border:1px solid var(--color-border);border-radius:10px;background:white;color:var(--color-navigation);padding:8px 14px;font-size:13px}
+.app-shell input:not([type=checkbox]):not([type=radio]),.app-shell select,.app-shell textarea{border-radius:10px}.app-shell input:not([type=checkbox]):not([type=radio]),.app-shell select{min-height:40px}.global-search input{border-radius:24px!important}
+button:disabled{cursor:not-allowed}button:hover:not(:disabled),a.button:hover{filter:brightness(.97)}
+.field-error:not(:empty),.form-error:not(:empty){padding:10px 12px;border-left:3px solid var(--color-danger);border-radius:8px;background:#fff0f2}
+#profile-feedback:not(:empty),#preferences-feedback:not(:empty),#users-feedback:not(:empty),#notes-feedback:not(:empty),#report-feedback:not(:empty),#detail-message:not(:empty){padding:12px 14px;border-radius:10px;border-left:3px solid #527c90;background:#edf4f7;color:#293844;font-size:14px;line-height:1.5}
+.ticket-status,.state-badge,.priority-badge{display:inline-block;border-radius:8px;padding:5px 8px;font-size:12px;font-weight:600;white-space:nowrap;background:#eaf3f8;color:#246780}
+[data-state="En proceso"]{background:#fff3d8;color:#875a00}[data-state="Resuelto"]{background:#e8f5ed;color:#177847}[data-state="Cerrado"]{background:#eef0f3;color:#566473}[data-priority="Alta"]{background:#fcecef;color:#ad263e}[data-priority="Media"]{background:#fff4d8;color:#875a00}[data-priority="Baja"]{background:#edf2f6;color:#506779}
+.table-tools{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:16px 0;font-size:13px}.table-tools label{display:flex;align-items:center;gap:8px}.table-tools select{background:white;border:1px solid var(--color-border);padding:8px;border-radius:10px;max-width:190px}.page-summary{margin-left:auto;color:var(--color-muted)}
+.ticket-table td,.ticket-table th,.users-table td{font-size:13px}.ticket-table thead th,.users-table th,.report-table th{font-size:12px}.table-scroll,.users-table-wrap{position:relative}.note-card{padding:14px 18px}.note-text{margin:10px 0}.notes-list{gap:10px}
+.chart-link{display:block;color:inherit;text-decoration:none;border-radius:8px}.chart-link>div:first-child{display:flex;justify-content:space-between;gap:12px;font-size:13px;margin-bottom:8px}.chart-link:hover{text-decoration:underline}.metric-card{position:relative}.metric-link{display:inline-block;font-size:12px;margin-top:12px;color:#33637a;text-underline-offset:3px}
+.context-help{margin:12px 0;border:1px solid var(--color-border);border-radius:12px;background:white;padding:12px 16px;color:var(--color-muted);font-size:13px;line-height:1.6}.context-help summary{cursor:pointer;color:var(--color-navigation);font-weight:600}.context-help p{margin-bottom:0}
+.report-brand{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px 0;border-bottom:2px solid #333f4a;margin-bottom:20px}.report-brand img{width:160px;height:auto}.report-brand span{color:var(--color-muted);font-size:13px}.report-footer{font-size:12px;color:var(--color-muted);border-top:1px solid var(--color-border);padding-top:12px;margin-top:20px}
+@media(max-width:650px){.table-tools label{width:100%;justify-content:space-between}.table-tools .page-summary{margin:0;width:100%}.ticket-table{min-width:740px}.report-brand{align-items:start;flex-direction:column}.chart-card{overflow-wrap:anywhere}}
+@media print{.sidebar,.topbar,.table-tools,.skip-link,.context-help{display:none!important}.print-all-rows tr[hidden]{display:table-row!important}.report-brand{padding-top:0}.report-brand img{width:125px}.report-table td{font-size:9px}.report-footer{font-size:9px}@page{size:A4 landscape;margin:14mm;@bottom-right{content:"Página " counter(page) " de " counter(pages);font-size:9px;color:#657583}}}

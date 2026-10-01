@@ -1,0 +1,212 @@
+/* Registro y confirmación según las capturas, con la escala compacta compartida. */
+.create-page {
+  max-width: 1120px;
+}
+
+.incident-card {
+  background: white;
+  padding: 22px;
+  border-radius: 14px;
+}
+
+.incident-card h2 {
+  font-size: 18px;
+  line-height: 26px;
+  margin: 0 0 20px;
+}
+
+.incident-card>.field,
+.incident-card>.form-columns {
+  margin-bottom: 16px;
+}
+
+.incident-card .field-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.incident-card .field-input {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  font-size: 14px;
+  min-height: 44px;
+  padding: 11px 14px;
+}
+
+.incident-card .field-input::placeholder {
+  color: #657583;
+  opacity: 1;
+}
+
+.incident-card .field-input[aria-invalid="true"] {
+  border-color: #e9495b;
+}
+
+.incident-card textarea {
+  min-height: 52px;
+  max-height: 260px;
+  resize: vertical;
+}
+
+.incident-card .field-error {
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.incident-card>.field-error {
+  margin-top: 16px;
+}
+
+.requester-info {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin: 2px 0 16px;
+}
+
+.evidence-panel {
+  background: var(--color-background);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.evidence-panel h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+}
+
+.evidence-panel .field-hint {
+  margin-bottom: 12px;
+}
+
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  padding: 10px 24px;
+  min-height: 42px;
+  border: 0;
+  border-radius: 11px;
+  background: white;
+  color: #293844;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.secondary-button:hover {
+  background: #eaf0f4;
+}
+
+.create-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.create-actions>.button {
+  background: var(--color-navigation);
+  border-radius: 11px;
+  min-height: 42px;
+  min-width: 190px;
+  font-size: 14px;
+}
+
+.create-actions>.secondary-button {
+  min-width: 130px;
+}
+
+.evidence-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 16px 0;
+}
+
+.evidence-item img {
+  width: 156px;
+  height: 88px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: white;
+}
+
+.evidence-item>div {
+  min-width: 0;
+}
+
+.evidence-item strong {
+  display: block;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.evidence-item p {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin: 8px 0;
+}
+
+.evidence-item .secondary-button {
+  min-height: 36px;
+  padding-block: 8px;
+  font-size: 13px;
+}
+
+.confirmation-card>p {
+  font-size: 13px;
+  line-height: 21px;
+  color: var(--color-muted);
+  margin: 16px 0;
+}
+
+.status-chip {
+  display: inline-block;
+  background: #eaf4f8;
+  color: #187593;
+  border-radius: 20px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.confirmation-card #created-sla {
+  margin: 20px 0;
+}
+
+.confirmation-card h2 {
+  margin-bottom: 14px;
+}
+
+.confirmation-card .create-actions>.button {
+  min-width: 130px;
+}
+
+@media (max-width: 600px) {
+  .incident-card {
+    padding: 18px 14px;
+  }
+
+  .incident-card .field-input {
+    font-size: 16px;
+  }
+
+  .evidence-panel {
+    padding: 14px;
+  }
+
+  .evidence-item {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .evidence-item img {
+    width: 90px;
+    height: 70px;
+  }
+
+  .create-actions>* {
+    flex: 1 1 auto;
+  }
+}

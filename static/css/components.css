@@ -1,0 +1,175 @@
+/* Componentes comunes de los formularios de acceso. */
+.icon {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.button {
+    min-height: var(--control-height);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: 0;
+    border-radius: var(--control-radius);
+    background: var(--color-action);
+    color: white;
+    font-size: var(--font-size-body);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.button:hover {
+    background: #414141;
+}
+
+.button .icon {
+    width: 24px;
+    height: 24px;
+}
+
+.field {
+    display: grid;
+    gap: 7px;
+    text-align: left;
+}
+
+.field-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-label);
+    line-height: 18px;
+    font-weight: 400;
+}
+
+.field-label .icon {
+    width: 20px;
+    height: 20px;
+}
+
+.input-wrap {
+    position: relative;
+}
+
+.input-wrap>.icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: #494949;
+    pointer-events: none;
+}
+
+.field-input {
+    display: block;
+    width: 100%;
+    min-height: var(--control-height);
+    border: 1px solid transparent;
+    border-radius: var(--control-radius);
+    padding: 10px 16px;
+    background: var(--color-background);
+    color: var(--color-text);
+    font-size: var(--font-size-body);
+}
+
+.input-wrap:has(> .icon) .field-input {
+    padding-left: 46px;
+}
+
+.field-input[aria-invalid="true"] {
+    border-color: var(--color-danger);
+}
+
+.field-hint {
+    margin: 0;
+    color: #747474;
+    font-size: var(--font-size-help);
+    line-height: 16px;
+    font-weight: 400;
+}
+
+.field-error,
+.form-error {
+    margin: 0;
+    color: #ae2637;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.form-error {
+    margin-top: 16px;
+    text-align: left;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #666;
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 20px;
+    text-decoration: none;
+}
+
+.back-link:hover {
+    color: #222;
+    text-decoration: underline;
+}
+
+.back-link .icon {
+    width: 20px;
+    height: 20px;
+}
+
+#toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    max-width: min(460px, calc(100vw - 32px));
+    padding: 12px 18px;
+    border-radius: 14px;
+    background: #333f4a;
+    color: white;
+    font-size: var(--font-size-label);
+    line-height: 1.5;
+    box-shadow: 0 8px 28px #0002;
+}
+
+#toast:empty {
+    display: none;
+}
+
+dialog {
+    border: 0;
+    border-radius: 20px;
+    padding: 24px;
+    max-width: min(420px, calc(100vw - 32px));
+    color: var(--color-text);
+}
+
+dialog::backdrop {
+    background: #16212b88;
+}
+
+dialog h2 {
+    margin-top: 0;
+    font-size: 22px;
+    line-height: 28px;
+}
+
+dialog p {
+    line-height: 1.5;
+}

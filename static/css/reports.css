@@ -1,0 +1,117 @@
+.report-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    margin: 20px 0
+}
+
+.report-actions span,
+#report-summary,
+#report-count,
+#report-feedback,
+#report-pending {
+    font-size: 13px;
+    color: var(--color-muted);
+    line-height: 1.6
+}
+
+.report-table-wrap {
+    position: relative;
+    overflow: auto;
+    max-width: 100%;
+    background: white;
+    border-radius: 14px;
+    padding: 16px
+}
+
+.report-table {
+    width: 100%;
+    min-width: 1150px;
+    border-collapse: collapse;
+    font-size: 12px;
+    text-align: left
+}
+
+.report-table th,
+.report-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: top;
+    overflow-wrap: anywhere
+}
+
+.report-table th {
+    color: var(--color-muted)
+}
+
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 12mm
+    }
+
+    body {
+        background: white;
+        font-size: 10px
+    }
+
+    .sidebar,
+    .topbar,
+    .report-controls,
+    #toast,
+    dialog {
+        display: none !important
+    }
+
+    .app-shell {
+        display: block
+    }
+
+    .app-workspace,
+    .reports-page {
+        padding: 0;
+        margin: 0;
+        max-width: none
+    }
+
+    .report-table-wrap {
+        overflow: visible;
+        padding: 0;
+        border-radius: 0
+    }
+
+    .report-table {
+        min-width: 0;
+        width: 100%;
+        table-layout: fixed;
+        font-size: 9px
+    }
+
+    .report-table th,
+    .report-table td {
+        padding: 6px 4px
+    }
+
+    .report-table th:nth-child(2) {
+        width: 18%
+    }
+
+    .report-table thead {
+        display: table-header-group
+    }
+
+    .report-table tr {
+        break-inside: avoid
+    }
+
+    .reports-page h1 {
+        font-size: 20px
+    }
+
+    #report-summary,
+    #report-count {
+        font-size: 10px;
+        color: #333
+    }
+}
