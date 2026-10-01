@@ -11,8 +11,8 @@ app = Flask(__name__)
 # ---------------------------------------------------------------------------
 
 # Módulo 1 — Autenticación y usuarios (Montenegro)
-# from modules.auth import bp as auth_bp
-# app.register_blueprint(auth_bp)
+from modules.auth import bp as auth_bp
+app.register_blueprint(auth_bp)
 
 # Módulo 2 — Registro de tickets con evidencias (Timaná)
 # from modules.tickets import bp as tickets_bp

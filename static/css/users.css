@@ -1,0 +1,162 @@
+/* Gestión de cuentas: utiliza los colores y controles compartidos. */
+.users-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px
+}
+
+.users-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: end;
+    margin: 24px 0
+}
+
+.users-filters label,
+#user-form label {
+    display: grid;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600
+}
+
+.users-filters input,
+.users-filters select,
+#user-form input:not([type=checkbox]),
+#user-form select {
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-background);
+    min-width: 0;
+    width: 100%;
+    color: var(--color-text)
+}
+
+.users-table-wrap {
+    overflow: auto;
+    background: white;
+    border-radius: 14px;
+    padding: 16px
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px
+}
+
+.users-table th {
+    color: var(--color-muted);
+    font-size: 12px
+}
+
+.users-table th,
+.users-table td {
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--color-border)
+}
+
+.users-table td span:not(.user-status) {
+    color: var(--color-muted);
+    font-size: 12px;
+    overflow-wrap: anywhere
+}
+
+.user-status {
+    font-size: 12px;
+    border-radius: 12px;
+    padding: 5px 9px;
+    white-space: nowrap
+}
+
+.user-status.active {
+    color: #177847;
+    background: #eaf6ef
+}
+
+.user-status.inactive {
+    color: #bc3543;
+    background: #fceff1
+}
+
+#users-count,
+#users-feedback,
+.user-help {
+    font-size: 13px;
+    color: var(--color-muted);
+    line-height: 1.5
+}
+
+#user-dialog {
+    width: min(520px, calc(100% - 24px));
+    max-height: 90dvh;
+    overflow: auto;
+    border: 0;
+    border-radius: 20px;
+    padding: 28px;
+    color: var(--color-navigation)
+}
+
+#user-dialog::backdrop {
+    background: #17212b80
+}
+
+#user-dialog h2 {
+    font-size: 22px;
+    margin-top: 0
+}
+
+#user-form {
+    display: grid;
+    gap: 16px
+}
+
+#user-form .user-active {
+    display: flex;
+    align-items: center
+}
+
+.user-help {
+    margin: 0
+}
+
+.user-actions {
+    display: flex;
+    justify-content: end;
+    gap: 16px
+}
+
+.nav-item[aria-current=page] {
+    background: #ffffff14
+}
+
+@media(max-width:650px) {
+    .users-heading {
+        align-items: start;
+        flex-direction: column
+    }
+
+    .users-filters label {
+        flex: 1 1 140px
+    }
+
+    .users-table {
+        min-width: 620px
+    }
+
+    .users-table-wrap {
+        max-width: 100%
+    }
+}
+
+.users-filters label {
+    min-width: 0;
+}
+
+.users-table-wrap {
+    position: relative;
+}

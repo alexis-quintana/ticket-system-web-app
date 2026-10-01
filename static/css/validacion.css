@@ -1,0 +1,15 @@
+/* Validación de formularios (estilo visto en clase: .form-field + <small>) */
+:root { --error-color:#dc3545; --success-color:#28a745; }
+.form-field small, #role-error { color: var(--error-color); font-size: 13px; display:block; min-height: 0; }
+.form-field.error input, .form-field.error select { border-color: var(--error-color) !important; }
+.form-field.success input { border-color: var(--success-color) !important; }
+#mensaje:not(:empty) { margin-top: 14px; }
+
+/* Modal de confirmación (clase S8) – renombrado para no chocar con .modal de Bootstrap */
+.confirm-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex;
+  justify-content:center; align-items:center; z-index:2000; }
+.confirm-overlay.hidden { display:none; }
+.confirm-box { background:#fff; padding:20px 30px; border-radius:8px; text-align:center; width:320px;
+  box-shadow:0 2px 8px rgba(0,0,0,.3); }
+.confirm-actions { display:flex; gap:10px; margin-top:15px; }
+.confirm-actions button { flex:1; }
