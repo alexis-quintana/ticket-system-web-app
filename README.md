@@ -1,7 +1,9 @@
 # ticket-system-web-app
-Sistema web de getión de tickets de Soporte TI con seguimiento de SLA, notificaciones y reportes. Desarrollado con Python, Flask y MySQL
+Sistema web de gestión de tickets de Soporte TI con seguimiento de SLA, notificaciones y reportes. Desarrollado con Python, Flask y MySQL
+=======
+# Sistema de Tickets TI
 
-# Aplicación Web del Sistema de Tickets de Soporte TI
+Sistema web de gestión de tickets de Soporte TI con seguimiento de SLA, notificaciones y reportes. Desarrollado con Python, Flask y MySQL.
 
 ## Descripción
 
@@ -15,7 +17,6 @@ Plataforma que permite registrar, asignar y hacer seguimiento de incidencias de 
 | Base de datos | MySQL |
 | Frontend | HTML, CSS, JavaScript |
 
-
 ## Integrantes y módulos
 
 | Integrante | N° Módulo | Descripción del Módulo |
@@ -25,6 +26,13 @@ Plataforma que permite registrar, asignar y hacer seguimiento de incidencias de 
 | Seminario Bautista, Lorena Marialya | 3 | Asignación, estados e historial |
 | Ordoñez Cavero, Martín Benjamín | 4 | SLA y semáforo visual |
 | Quintana Luis, Alexis Abel | 5 | Notificaciones internas |
+
+## Cómo ejecutar
+
+1. Iniciar Apache y MySQL en XAMPP.
+2. En phpMyAdmin, crear la base `db_sistema_tickets_ti` (cotejamiento `utf8mb4_general_ci`) e importar los scripts de `database/` en orden numérico.
+3. Ejecutar `setup.bat` (una sola vez por computadora).
+4. Ejecutar `run.bat` y abrir `http://127.0.0.1:5000/`.
 
 ---
 
