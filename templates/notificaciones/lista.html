@@ -1,0 +1,76 @@
+{% extends "base_app.html" %}
+{% block titulo %}Notificaciones{% endblock %}
+
+{% block contenido %}
+<section id="page-content" tabindex="-1" class="tickets-page notifications-page" aria-labelledby="page-title">
+    <a id="notes-back" href="/tickets">← Volver a tickets</a>
+    <div class="notes-heading">
+        <div>
+            <h1 id="page-title" tabindex="-1">Notificaciones</h1>
+            <p class="page-description">Asignaciones, cambios de estado y comentarios de tus tickets.</p>
+        </div>
+        <form method="post" action="{{ url_for('notificaciones.marcar_todas') }}">
+            <button type="submit" class="button" id="notes-read-all" {% if no_leidas==0 %} disabled{% endif %}>Marcar
+                todas como leídas</button>
+        </form>
+    </div>
+
+    <form id="notes-filters" class="notes-filters" method="get" action="{{ url_for('notificaciones.lista') }}">
+        <label>Lectura
+            <select id="notes-read" name="lectura">
+                <option value="todas" {% if lectura=='todas' %} selected{% endif %}>Todas</option>
+                <option value="no_leidas" {% if lectura=='no_leidas' %} selected{% endif %}>No leídas</option>
+                <option value="leidas" {% if lectura=='leidas' %} selected{% endif %}>Leídas</option>
+            </select>
+        </label>
+        <label>Tipo
+            <select id="notes-type" name="tipo">
+                <option value="">Todos los tipos</option>
+                {% for codigo, etiqueta in tipos.items() %}
+                <option value="{{ codigo }}" {% if tipo==codigo %} selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit" class="row-action">Filtrar</button>
+        <a class="row-action" href="{{ url_for('notificaciones.lista') }}">Limpiar filtros</a>
+    </form>
+
+    <p id="notes-summary" role="status" aria-live="polite">{{ no_leidas }} no leídas · {{ notificaciones|length }} de {{
+        total }} notificaciones</p>
+
+    {% if not notificaciones %}
+    <div id="notes-empty" class="notes-empty">
+        {% if total %}
+        <h2>Sin resultados para estos filtros</h2>
+        <p>Cambia los filtros para consultar tus otras notificaciones.</p>
+        {% else %}
+        <h2>No tienes notificaciones</h2>
+        <p>Aquí aparecerán las asignaciones, los cambios de estado y los nuevos comentarios.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <ul id="notes-list" class="notes-list" aria-label="Notificaciones recibidas">
+        {% for n in notificaciones %}
+        <li class="note-card{% if not n.leida %} is-unread{% endif %}">
+            <div class="note-top">
+                <h2>{{ tipos[n.tipo] }}</h2>
+                <span class="note-status">{{ 'Leída' if n.leida else 'No leída' }}</span>
+            </div>
+            <p class="note-text">{{ n.mensaje }}</p>
+            <p class="note-date"><time datetime="{{ n.created_at.isoformat() }}">{{ n.created_at.strftime('%d/%m/%Y
+                    %H:%M') }}</time></p>
+            <div class="note-actions">
+                <a class="row-action" href="/tickets/{{ n.ticket_id }}">Ver ticket {{ n.ticket_id }}</a>
+                {% if not n.leida %}
+                <form method="post" action="{{ url_for('notificaciones.marcar_leida', notificacion_id=n.id) }}">
+                    <button type="submit" class="row-action">Marcar como leída<span class="sr-only">: ticket {{
+                            n.ticket_id }} · {{ tipos[n.tipo] }}</span></button>
+                </form>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}
