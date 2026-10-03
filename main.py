@@ -19,12 +19,12 @@ from modules.tickets import bp as tickets_bp
 app.register_blueprint(tickets_bp)
 
 # Módulo 3 — Asignación, estados e historial (Seminario)
-# from modules.historial import bp as historial_bp
-# app.register_blueprint(historial_bp)
+from modules.historial import bp as historial_bp
+app.register_blueprint(historial_bp)
 
 # Módulo 4 — SLA y semáforo visual (Ordoñez)
-# from modules.sla import bp as sla_bp
-# app.register_blueprint(sla_bp)
+from modules.sla import bp as sla_bp
+app.register_blueprint(sla_bp)
 
 # Módulo 5 — Notificaciones internas (Quintana)
 from modules.notificaciones import bp as notificaciones_bp

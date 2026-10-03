@@ -1,0 +1,92 @@
+{% extends "auth/_layout.html" %}
+{% block title %}Asignación de tickets{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/validacion.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ticket-detail.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/historial.css') }}">
+{% endblock %}
+{% block content %}
+<div class="users-heading">
+  <div>
+    <h1 id="page-title">Asignación de tickets</h1>
+    <p class="page-description">
+      {% if usuario_actual.rol == 'Administrador' %}Asigna un técnico a cada ticket y sigue su estado.
+      {% else %}Estos son los tickets que tienes asignados. Cambia su estado dejando un comentario.{% endif %}
+    </p>
+  </div>
+</div>
+
+<form method="get" class="row g-2 align-items-end my-3">
+  <div class="col-md-3"><label class="form-label small fw-semibold" for="f-q">Buscar</label>
+    <input class="form-control" id="f-q" name="q" value="{{ f.q }}" placeholder="Asunto o N° de ticket">
+  </div>
+  <div class="col-md-2"><label class="form-label small fw-semibold" for="f-estado">Estado</label>
+    <select class="form-select" id="f-estado" name="estado">
+      <option value="">Todos</option>
+      {% for e in estados %}<option {{ 'selected' if f.estado == e }}>{{ e }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2"><label class="form-label small fw-semibold" for="f-prioridad">Prioridad</label>
+    <select class="form-select" id="f-prioridad" name="prioridad">
+      <option value="">Todas</option>
+      {% for p in prioridades %}<option {{ 'selected' if f.prioridad == p }}>{{ p }}</option>{% endfor %}
+    </select>
+  </div>
+  {% if usuario_actual.rol == 'Administrador' %}
+  <div class="col-md-2"><label class="form-label small fw-semibold" for="f-asignado">Responsable</label>
+    <select class="form-select" id="f-asignado" name="asignado">
+      <option value="">Todos</option>
+      <option value="sin" {{ 'selected' if f.asignado == 'sin' }}>Sin asignar</option>
+    </select>
+  </div>
+  {% endif %}
+  <div class="col-md-3 d-flex gap-2"><button class="button">Filtrar</button>
+    <a class="secondary-button" href="{{ url_for('historial.asignaciones') }}">Limpiar</a>
+  </div>
+</form>
+
+<div class="table-card">
+  <div class="table-scroll">
+    <table class="ticket-table">
+      <thead>
+        <tr><th>ID / asunto</th><th>Prioridad</th><th>Responsable</th><th>Estado</th><th>SLA</th><th>Acciones</th></tr>
+      </thead>
+      <tbody>
+        {% for t in tickets %}
+        <tr>
+          <th scope="row"><span>LF-{{ '%04d'|format(t.id) }}</span><span class="detail-muted hist-asunto">{{ t.asunto }}</span></th>
+          <td><span class="priority-badge" data-priority="{{ t.prioridad }}">{{ t.prioridad }}</span></td>
+          <td class="hist-responsable">{{ t.tecnico or 'Sin asignar' }}</td>
+          <td><span class="state-badge" data-state="{{ t.estado }}">{{ t.estado }}</span></td>
+          <td><span class="sla sla-{{ t.sla.clase }}"><strong>{{ t.sla.texto.split(' · ')[0] }}</strong>{{ t.sla.texto.split(' · ')[1] }}</span></td>
+          <td class="hist-celda-acciones"><div class="hist-acciones">
+            <a class="row-action" href="{{ url_for('historial.ver_historial', ticket_id=t.id) }}">Ver historial</a>
+            {% if usuario_actual.rol == 'Administrador' and t.estado != 'Cerrado' %}
+            <button type="button" class="row-action btn-asignar" data-id="{{ t.id }}"
+              data-asunto="{{ t.asunto }}" data-tecnico="{{ t.tecnico_id or '' }}"
+              data-bs-toggle="modal" data-bs-target="#modal-asignar">{{ 'Reasignar' if t.tecnico else 'Asignar' }}</button>
+            {% endif %}
+            {% if t.puede_estado %}
+            <button type="button" class="row-action btn-estado" data-id="{{ t.id }}"
+              data-asunto="{{ t.asunto }}" data-estado="{{ t.estado }}"
+              data-siguientes="{{ t.siguientes|join(',') }}"
+              data-bs-toggle="modal" data-bs-target="#modal-estado">Cambiar estado</button>
+            {% endif %}
+          </div></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty-state">
+          <h2>No hay tickets para mostrar</h2>
+          <p class="detail-muted">Prueba con otros filtros o usa Limpiar.</p>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="table-count">{{ tickets|length }} ticket(s)</p>
+</div>
+
+{% include "historial/_modales.html" %}
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/historial.js') }}"></script>{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "auth/_layout.html" %}
+{% block title %}Historial LF-{{ '%04d'|format(t.id) }}{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/validacion.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ticket-detail.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/historial.css') }}">
+{% endblock %}
+{% block content %}
+{% if usuario_actual.rol != 'Solicitante' %}
+<a class="detail-back" href="{{ url_for('historial.asignaciones') }}">← Volver a asignaciones</a>
+{% endif %}
+
+<div class="detail-grid">
+  <div class="detail-main">
+    <article class="detail-card">
+      <div class="detail-heading">
+        <div>
+          <p class="detail-muted mb-1">LF-{{ '%04d'|format(t.id) }}</p>
+          <h2 id="page-title">{{ t.asunto }}</h2>
+        </div>
+        <span class="state-badge" data-state="{{ t.estado }}">{{ t.estado }}</span>
+      </div>
+      <dl class="ticket-facts">
+        <div><dt>Prioridad</dt><dd><span class="priority-badge" data-priority="{{ t.prioridad }}">{{ t.prioridad }}</span></dd></div>
+        <div><dt>SLA</dt><dd><span class="sla sla-{{ t.sla.clase }}"><strong>{{ t.sla.texto.split(' · ')[0] }}</strong>{{ t.sla.texto.split(' · ')[1] }}</span></dd></div>
+        <div><dt>Categoría</dt><dd>{{ t.categoria or '—' }}</dd></div>
+        <div><dt>Solicitante</dt><dd>{{ t.solicitante or '—' }}</dd></div>
+        <div><dt>Responsable</dt><dd>{{ t.tecnico or 'Sin asignar' }}</dd></div>
+        <div><dt>Creado</dt><dd>{{ t.created_at.strftime('%d/%m/%Y %H:%M') }}</dd></div>
+      </dl>
+      <h3>Descripción</h3>
+      <p class="ticket-description">{{ t.descripcion }}</p>
+    </article>
+
+    <section class="detail-card" aria-labelledby="hist-titulo">
+      <h2 id="hist-titulo">Historial del ticket</h2>
+      {% include "historial/_timeline.html" %}
+    </section>
+  </div>
+
+  <aside class="detail-side">
+    <section class="detail-card">
+      <h2>Responsable</h2>
+      <p>{{ t.tecnico or 'Aún no tiene técnico asignado.' }}</p>
+      {% if usuario_actual.rol == 'Administrador' and t.estado != 'Cerrado' %}
+      <button type="button" class="button btn-asignar" data-id="{{ t.id }}" data-asunto="{{ t.asunto }}"
+        data-tecnico="{{ t.tecnico_id or '' }}" data-bs-toggle="modal" data-bs-target="#modal-asignar">
+        {{ 'Reasignar técnico' if t.tecnico else 'Asignar técnico' }}</button>
+      {% endif %}
+    </section>
+    <section class="detail-card">
+      <h2>Estado</h2>
+      <p>Actual: <span class="state-badge" data-state="{{ t.estado }}">{{ t.estado }}</span></p>
+      {% if t.puede_estado %}
+      <button type="button" class="button btn-estado" data-id="{{ t.id }}" data-asunto="{{ t.asunto }}"
+        data-estado="{{ t.estado }}" data-siguientes="{{ t.siguientes|join(',') }}"
+        data-bs-toggle="modal" data-bs-target="#modal-estado">Cambiar estado</button>
+      {% elif t.estado == 'Cerrado' %}
+      <p class="detail-muted">El ticket está cerrado y ya no admite cambios.</p>
+      {% elif usuario_actual.rol != 'Solicitante' and not t.tecnico %}
+      <p class="detail-muted">Asigna un técnico para poder cambiar el estado.</p>
+      {% endif %}
+    </section>
+  </aside>
+</div>
+
+{% include "historial/_modales.html" %}
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/historial.js') }}"></script>{% endblock %}
