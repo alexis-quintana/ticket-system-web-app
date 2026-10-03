@@ -29,8 +29,8 @@ app.register_blueprint(auth_bp)
 # app.register_blueprint(historial_bp)
 
 # Módulo 4 — SLA y semáforo visual (Ordoñez)
-# from modules.sla import bp as sla_bp
-# app.register_blueprint(sla_bp)
+from modules.sla import bp as sla_bp
+app.register_blueprint(sla_bp)
 
 # Módulo 5 — Notificaciones internas (Quintana)
 # from modules.notificaciones import bp as notificaciones_bp
