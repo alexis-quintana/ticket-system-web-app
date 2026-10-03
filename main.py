@@ -21,8 +21,8 @@ from modules.auth import bp as auth_bp
 app.register_blueprint(auth_bp)
 
 # Módulo 2 — Registro de tickets con evidencias (Timaná)
-# from modules.tickets import bp as tickets_bp
-# app.register_blueprint(tickets_bp)
+from modules.tickets import bp as tickets_bp
+app.register_blueprint(tickets_bp)
 
 # Módulo 3 — Asignación, estados e historial (Seminario)
 # from modules.historial import bp as historial_bp

@@ -1,0 +1,45 @@
+{% extends "auth/_layout.html" %}
+{% block title %}Tickets{% endblock %}
+{% block content %}
+<div class="users-heading">
+  <div>
+    <h1 id="page-title">Tickets</h1>
+    <p class="page-description">Solicitudes de soporte registradas.</p>
+  </div>
+</div>
+
+<div class="table-card">
+  {% if tickets %}
+  <div class="table-scroll">
+    <table class="ticket-table">
+      <thead>
+        <tr>
+          <th scope="col">Ticket</th>
+          <th scope="col">Categoría</th>
+          <th scope="col">Prioridad</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Registrado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tickets %}
+        <tr>
+          <th scope="row"><span class="text-muted small">TK-{{ '%04d'|format(t.id) }}</span><span>{{ t.asunto }}</span></th>
+          <td>{{ t.categoria }}</td>
+          <td><span class="priority{{ ' priority-high' if t.prioridad == 'Alta' }}">{{ t.prioridad }}</span></td>
+          <td><span class="ticket-status">{{ t.estado }}</span></td>
+          <td>{{ t.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="table-count">{{ tickets|length }} ticket(s)</p>
+  {% else %}
+  <div class="empty-state">
+    <h2>Aún no tienes tickets</h2>
+    <p class="page-description">Cuando registres una solicitud de soporte aparecerá aquí.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
