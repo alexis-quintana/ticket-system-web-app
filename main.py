@@ -1,14 +1,8 @@
-from flask import Flask, render_template
+from flask import Flask
 
 from db import obtener_conexion
 
 app = Flask(__name__)
-
-
-@app.context_processor
-def datos_de_sesion():
-    # PROVISIONAL: Montenegro (módulo 1) lo reemplazará con el usuario real del JWT.
-    return {"usuario": {"nombre": "Usuario de prueba", "rol": "Administrador", "iniciales": "UP"}}
 
 
 # ---------------------------------------------------------------------------
@@ -29,12 +23,12 @@ app.register_blueprint(auth_bp)
 # app.register_blueprint(historial_bp)
 
 # Módulo 4 — SLA y semáforo visual (Ordoñez)
-from modules.sla import bp as sla_bp
-app.register_blueprint(sla_bp)
+# from modules.sla import bp as sla_bp
+# app.register_blueprint(sla_bp)
 
 # Módulo 5 — Notificaciones internas (Quintana)
-# from modules.notificaciones import bp as notificaciones_bp
-# app.register_blueprint(notificaciones_bp)
+from modules.notificaciones import bp as notificaciones_bp
+app.register_blueprint(notificaciones_bp)
 
 
 # ---------------------------------------------------------------------------
@@ -52,12 +46,6 @@ def probandoconexion():
         return "<p>Conexión exitosa</p>"
     except Exception as e:
         return "<p>Error: " + repr(e) + "</p>"
-
-
-# TEMPORAL: solo para verificar el diseño del menú. Borrar antes de la sustentación.
-@app.route("/prueba-shell")
-def prueba_shell():
-    return render_template("prueba_shell.html")
 
 
 if __name__ == "__main__":
