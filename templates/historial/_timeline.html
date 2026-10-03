@@ -1,0 +1,27 @@
+{# Línea de tiempo del ticket. Reutilizable: {% include "historial/_timeline.html" %} con la variable `eventos` #}
+{% if eventos %}
+<ol class="ticket-timeline" aria-label="Historial del ticket">
+  {% for e in eventos %}
+  <li>
+    {% if e.tipo == 'Asignación' %}
+      <strong>Asignado a {{ e.tecnico }}</strong>
+    {% else %}
+      <strong>Cambio de estado</strong>
+      <span class="hist-flujo">
+        <span class="state-badge" data-state="{{ e.estado_anterior }}">{{ e.estado_anterior }}</span>
+        <span aria-hidden="true">→</span>
+        <span class="state-badge" data-state="{{ e.estado_nuevo }}">{{ e.estado_nuevo }}</span>
+      </span>
+    {% endif %}
+    <div class="history-metadata">
+      <span>{{ e.autor }}</span>
+      <time datetime="{{ e.created_at.isoformat() }}" title="{{ e.created_at.strftime('%d/%m/%Y %H:%M') }}">
+        {{ e.created_at.strftime('%d/%m/%Y %H:%M') }} · {{ e.created_at|relativo }}</time>
+    </div>
+    <p>{{ e.comentario }}</p>
+  </li>
+  {% endfor %}
+</ol>
+{% else %}
+<p class="detail-muted">Este ticket aún no tiene movimientos. Aparecerán aquí al asignarlo o cambiar su estado.</p>
+{% endif %}

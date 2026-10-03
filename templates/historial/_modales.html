@@ -1,0 +1,64 @@
+{# Modales del Módulo 3. Se incluyen en asignaciones.html y historial.html #}
+
+<!-- Cambiar estado (comentario obligatorio) -->
+<div class="modal fade" id="modal-estado" tabindex="-1" aria-labelledby="modal-estado-titulo" aria-hidden="true">
+  <div class="modal-dialog">
+    <form class="modal-content" id="form-estado" novalidate>
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-estado-titulo">Cambiar estado</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body vstack gap-3">
+        <p class="hist-modal-ticket" id="estado-ticket"></p>
+        <div class="hist-cambio">
+          <div><span class="detail-muted">Estado actual</span><br><span class="state-badge" id="estado-actual"></span></div>
+          <span aria-hidden="true">→</span>
+          <div class="form-field flex-grow-1"><label class="form-label mb-1" for="estado-nuevo">Nuevo estado</label>
+            <select class="form-select" id="estado-nuevo" name="estado"></select><small></small>
+          </div>
+        </div>
+        <div class="form-field"><label class="form-label" for="estado-comentario">Comentario (obligatorio)</label>
+          <textarea class="form-control" id="estado-comentario" name="comentario" rows="4" maxlength="1000"
+            placeholder="Describe qué se hizo o por qué cambia el estado"></textarea><small></small>
+        </div>
+        <div id="estado-mensaje" role="status"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="secondary-button" data-bs-dismiss="modal">Cancelar</button>
+        <button class="button hist-btn" id="estado-guardar">Confirmar cambio</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if usuario_actual.rol == 'Administrador' %}
+<!-- Asignar técnico (solo administrador) -->
+<div class="modal fade" id="modal-asignar" tabindex="-1" aria-labelledby="modal-asignar-titulo" aria-hidden="true">
+  <div class="modal-dialog">
+    <form class="modal-content" id="form-asignar" novalidate>
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-asignar-titulo">Asignar ticket</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body vstack gap-3">
+        <p class="hist-modal-ticket" id="asignar-ticket"></p>
+        <div class="form-field"><label class="form-label" for="asignar-tecnico">Técnico responsable</label>
+          <select class="form-select" id="asignar-tecnico" name="tecnico_id">
+            <option value="">— Selecciona un técnico —</option>
+            {% for x in tecnicos %}<option value="{{ x.id }}">{{ x.nombre }}</option>{% endfor %}
+          </select><small></small>
+        </div>
+        <div class="form-field"><label class="form-label" for="asignar-comentario">Comentario (opcional)</label>
+          <textarea class="form-control" id="asignar-comentario" name="comentario" rows="3" maxlength="1000"
+            placeholder="Indicaciones para el técnico"></textarea>
+        </div>
+        <div id="asignar-mensaje" role="status"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="secondary-button" data-bs-dismiss="modal">Cancelar</button>
+        <button class="button hist-btn" id="asignar-guardar">Asignar ticket</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
