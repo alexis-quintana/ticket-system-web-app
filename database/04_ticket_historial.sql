@@ -1,25 +1,36 @@
--- ============================================================
--- Módulo 3 — Asignación, estados e historial (Seminario)
--- Requiere (en este orden): 01_catalogos.sql, 02_inicio_sesion.sql, 03_tickets.sql
--- Columnas que este módulo usa de `tickets` (confirmar con Timaná):
---   id, empresa_id, asunto, descripcion, categoria_id, prioridad,
---   estado, solicitante_id, tecnico_id, created_at
--- ============================================================
+-- módulo 3: asignación, estados e historial.
+-- cada cambio guarda quién lo hizo, cuándo y un comentario obligatorio.
 
-CREATE TABLE IF NOT EXISTS ticket_historial (
-    id              INT AUTO_INCREMENT PRIMARY KEY,
-    empresa_id      INT NOT NULL,
-    ticket_id       INT NOT NULL,
-    usuario_id      INT NOT NULL,              -- autor del cambio
-    tipo            VARCHAR(20) NOT NULL,      -- 'Asignación' | 'Cambio de estado'
-    estado_anterior VARCHAR(20) NULL,
-    estado_nuevo    VARCHAR(20) NULL,
-    tecnico_id      INT NULL,                  -- técnico asignado (solo en 'Asignación')
-    comentario      TEXT NOT NULL,             -- obligatorio en cada cambio
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_historial_ticket (ticket_id, created_at),
-    FOREIGN KEY (empresa_id) REFERENCES empresas(id),
-    FOREIGN KEY (ticket_id)  REFERENCES tickets(id),
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
-    FOREIGN KEY (tecnico_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+use db_sistema_tickets_ti;
+
+create table ticket_historial (
+    id              int auto_increment primary key,
+    empresa_id      int not null,
+    ticket_id       int not null,
+    usuario_id      int not null,
+    tipo            varchar(20) not null,
+    estado_anterior varchar(20) null,
+    estado_nuevo    varchar(20) null,
+    tecnico_id      int null,
+    comentario      text not null,
+    created_at      timestamp not null default current_timestamp,
+    index idx_historial_ticket (ticket_id, created_at),
+    foreign key (empresa_id) references empresas (id),
+    foreign key (ticket_id) references tickets (id) on delete cascade,
+    foreign key (usuario_id) references usuarios (id),
+    foreign key (tecnico_id) references usuarios (id)
+) engine=innodb default charset=utf8mb4 collate=utf8mb4_general_ci;
+
+-- comentarios libres sobre un ticket; generan notificación de tipo comentario
+create table ticket_comentarios (
+    id         int auto_increment primary key,
+    empresa_id int not null,
+    ticket_id  int not null,
+    usuario_id int not null,
+    comentario text not null,
+    created_at timestamp not null default current_timestamp,
+    index idx_comentarios_ticket (ticket_id, created_at),
+    foreign key (empresa_id) references empresas (id),
+    foreign key (ticket_id) references tickets (id) on delete cascade,
+    foreign key (usuario_id) references usuarios (id)
+) engine=innodb default charset=utf8mb4 collate=utf8mb4_general_ci;
