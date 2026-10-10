@@ -73,3 +73,16 @@
   </div>
 </header>
 {% endmacro %}
+
+
+{# Migas de pan: {{ migas([('Inicio', url_for('panel.inicio')), ('Tickets', none)]) }}
+   El último elemento (sin enlace) es la página actual. #}
+{% macro migas(items) %}
+<nav class="breadcrumbs" aria-label="Ruta de navegación">
+  <ol>
+    {% for texto, href in items %}
+    <li>{% if href %}<a href="{{ href }}">{{ texto }}</a>{% else %}<span aria-current="page">{{ texto }}</span>{% endif %}</li>
+    {% endfor %}
+  </ol>
+</nav>
+{% endmacro %}
