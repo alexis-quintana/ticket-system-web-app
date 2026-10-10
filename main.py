@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, redirect, session, url_for
 
 from db import obtener_conexion
 
@@ -36,7 +36,10 @@ app.register_blueprint(notificaciones_bp)
 # ---------------------------------------------------------------------------
 @app.route("/")
 def inicio():
-    return "<p>Sistema de Tickets TI en marcha</p>"
+    # Sin sesión va al login; con sesión, a la página de inicio del sistema
+    if "usuario_id" not in session:
+        return redirect(url_for("auth.login"))
+    return redirect("/inicio")
 
 
 @app.route("/probandoconexion")
