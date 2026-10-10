@@ -30,6 +30,10 @@ app.register_blueprint(sla_bp)
 from modules.notificaciones import bp as notificaciones_bp
 app.register_blueprint(notificaciones_bp)
 
+# Módulo 6 — Reportes (por ahora: página "en construcción")
+from modules.reportes import bp as reportes_bp
+app.register_blueprint(reportes_bp)
+
 # Páginas generales: Inicio, Dashboard, Perfil y Configuración (integración)
 from modules.panel import bp as panel_bp
 app.register_blueprint(panel_bp)
