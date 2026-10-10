@@ -8,7 +8,7 @@
 
 use db_sistema_tickets_ti;
 set names utf8mb4;
-set @hash_demo = '$2b$12$VdaoV2QGb1c/l4vcaD8HPOSwHB99GmPimEhccPnSHhYiF.oHpcrr2';
+set @hash_demo = '$2b$12$I4zpXw7a5OfY.Ykrgez70ukfRHowdUY10edHpSpdKCSMljWEmYpQy';
 
 -- roles del sistema
 insert into roles (id, nombre) values
@@ -16,13 +16,14 @@ insert into roles (id, nombre) values
   (2, 'Técnico'),
   (3, 'Solicitante');
 
--- empresas
+-- empresas (la 6 es la plataforma del grupo: aloja al administrador general, no es un cliente)
 insert into empresas (id, nombre, ruc, sector, num_trabajadores, contacto_nombre, contacto_cargo, contacto_email, integrante_responsable) values
   (1, 'ANGEL DIVINO BUS S.A.C.', '20608151771', 'Transporte', 174, 'Hugo Fernando Tantajulca Rimarachin', 'Jefe de TI', 'conpert@maytok.com', 'Montenegro Urrutia, Juan Diego'),
   (2, 'Empresa en coordinación (demo)', null, 'Manufactura', null, 'Contacto pendiente (demo)', 'Jefe de TI', 'admin@empresa02.test', 'Ordoñez Cavero, Martín Benjamín'),
   (3, 'BM Clínica Mendoza S.A.', '20480657323', 'Salud privada', 147, 'Miguel Angel Revilla Pejerrey', 'Jefe de T.I.', 'sistemas@bmclinica.com', 'Quintana Luis, Alexis Abel'),
   (4, 'Móvil Bus S.A.C.', '20555901179', 'Transporte', 1405, 'Juan Ronald Ynga Alvarado', 'Administrador', 'soporteti@movilbus.pe', 'Seminario Bautista, Lorena Marialya'),
-  (5, 'Agroindustrial Pomalca S.A.A.', '20163898200', 'Agroindustria', 2133, 'Paul Giraldo Palacios', 'Jefe de TI', 'pgiraldo@pomalca.com.pe', 'Timaná Novoa, Juan Diego');
+  (5, 'Agroindustrial Pomalca S.A.A.', '20163898200', 'Agroindustria', 2133, 'Paul Giraldo Palacios', 'Jefe de TI', 'pgiraldo@pomalca.com.pe', 'Timaná Novoa, Juan Diego'),
+  (6, 'Plataforma Sistema de Tickets TI', null, 'Administración del sistema', null, 'Grupo del proyecto', 'Administrador general', 'superadmin@sistema-tickets.test', 'Todo el grupo');
 
 -- áreas y categorías por empresa
 insert into areas (id, empresa_id, nombre) values
@@ -106,40 +107,40 @@ insert into personas (id, empresa_id, area_id, nombres, apellidos, dni, telefono
   (28, 5, 18, 'Manuel', 'Idrogo Bravo', '40712398', '982000500'),
   (29, 5, 19, 'Teresa', 'Vera Montalvo', '45982130', '982000511'),
   (30, 5, 20, 'Alonso', 'Tapia Guevara', '47102839', '982000522'),
-  (31, 1, null, 'Administrador', 'General', '00000000', null);
+  (31, 6, null, 'Administrador', 'General del Sistema', '99999999', null);
 
-insert into usuarios (id, empresa_id, persona_id, rol_id, email, password, activo) values
-  (1, 1, 1, 1, 'conpert@maytok.com', @hash_demo, 1),
-  (2, 1, 2, 2, 'carlos.llontop@angeldivinobus.test', @hash_demo, 1),
-  (3, 1, 3, 2, 'rosa.santamaria@angeldivinobus.test', @hash_demo, 1),
-  (4, 1, 4, 3, 'miguel.vasquez@angeldivinobus.test', @hash_demo, 1),
-  (5, 1, 5, 3, 'jessica.ruiz@angeldivinobus.test', @hash_demo, 1),
-  (6, 1, 6, 3, 'walter.bances@angeldivinobus.test', @hash_demo, 1),
-  (7, 2, 7, 1, 'admin@empresa02.test', @hash_demo, 1),
-  (8, 2, 8, 2, 'luis.carrasco@empresa02.test', @hash_demo, 1),
-  (9, 2, 9, 2, 'ana.torres@empresa02.test', @hash_demo, 1),
-  (10, 2, 10, 3, 'pedro.gonzales@empresa02.test', @hash_demo, 1),
-  (11, 2, 11, 3, 'lucia.mendoza@empresa02.test', @hash_demo, 1),
-  (12, 2, 12, 3, 'hector.salazar@empresa02.test', @hash_demo, 1),
-  (13, 3, 13, 1, 'sistemas@bmclinica.com', @hash_demo, 1),
-  (14, 3, 14, 2, 'diego.fernandez@bmclinica.test', @hash_demo, 1),
-  (15, 3, 15, 2, 'karen.olazabal@bmclinica.test', @hash_demo, 1),
-  (16, 3, 16, 3, 'sandra.chavez@bmclinica.test', @hash_demo, 1),
-  (17, 3, 17, 3, 'raul.coronado@bmclinica.test', @hash_demo, 1),
-  (18, 3, 18, 3, 'elizabeth.pisfil@bmclinica.test', @hash_demo, 1),
-  (19, 4, 19, 1, 'soporteti@movilbus.pe', @hash_demo, 1),
-  (20, 4, 20, 2, 'jorge.mego@movilbus.test', @hash_demo, 1),
-  (21, 4, 21, 2, 'milagros.hurtado@movilbus.test', @hash_demo, 1),
-  (22, 4, 22, 3, 'victor.alarcon@movilbus.test', @hash_demo, 1),
-  (23, 4, 23, 3, 'noemi.cajusol@movilbus.test', @hash_demo, 1),
-  (24, 4, 24, 3, 'franco.delgado@movilbus.test', @hash_demo, 1),
-  (25, 5, 25, 1, 'pgiraldo@pomalca.com.pe', @hash_demo, 1),
-  (26, 5, 26, 2, 'oscar.rojas@pomalca.test', @hash_demo, 1),
-  (27, 5, 27, 2, 'gladys.cabrera@pomalca.test', @hash_demo, 1),
-  (28, 5, 28, 3, 'manuel.idrogo@pomalca.test', @hash_demo, 1),
-  (29, 5, 29, 3, 'teresa.vera@pomalca.test', @hash_demo, 1),
-  (30, 5, 30, 3, 'alonso.tapia@pomalca.test', @hash_demo, 1),
-  (31, 1, 31, 1, 'admin@lexfixer.com', @hash_demo, 1);
+insert into usuarios (id, empresa_id, persona_id, rol_id, email, password, activo, es_superadmin) values
+  (1, 1, 1, 1, 'conpert@maytok.com', @hash_demo, 1, 0),
+  (2, 1, 2, 2, 'carlos.llontop@angeldivinobus.test', @hash_demo, 1, 0),
+  (3, 1, 3, 2, 'rosa.santamaria@angeldivinobus.test', @hash_demo, 1, 0),
+  (4, 1, 4, 3, 'miguel.vasquez@angeldivinobus.test', @hash_demo, 1, 0),
+  (5, 1, 5, 3, 'jessica.ruiz@angeldivinobus.test', @hash_demo, 1, 0),
+  (6, 1, 6, 3, 'walter.bances@angeldivinobus.test', @hash_demo, 1, 0),
+  (7, 2, 7, 1, 'admin@empresa02.test', @hash_demo, 1, 0),
+  (8, 2, 8, 2, 'luis.carrasco@empresa02.test', @hash_demo, 1, 0),
+  (9, 2, 9, 2, 'ana.torres@empresa02.test', @hash_demo, 1, 0),
+  (10, 2, 10, 3, 'pedro.gonzales@empresa02.test', @hash_demo, 1, 0),
+  (11, 2, 11, 3, 'lucia.mendoza@empresa02.test', @hash_demo, 1, 0),
+  (12, 2, 12, 3, 'hector.salazar@empresa02.test', @hash_demo, 1, 0),
+  (13, 3, 13, 1, 'sistemas@bmclinica.com', @hash_demo, 1, 0),
+  (14, 3, 14, 2, 'diego.fernandez@bmclinica.test', @hash_demo, 1, 0),
+  (15, 3, 15, 2, 'karen.olazabal@bmclinica.test', @hash_demo, 1, 0),
+  (16, 3, 16, 3, 'sandra.chavez@bmclinica.test', @hash_demo, 1, 0),
+  (17, 3, 17, 3, 'raul.coronado@bmclinica.test', @hash_demo, 1, 0),
+  (18, 3, 18, 3, 'elizabeth.pisfil@bmclinica.test', @hash_demo, 1, 0),
+  (19, 4, 19, 1, 'soporteti@movilbus.pe', @hash_demo, 1, 0),
+  (20, 4, 20, 2, 'jorge.mego@movilbus.test', @hash_demo, 1, 0),
+  (21, 4, 21, 2, 'milagros.hurtado@movilbus.test', @hash_demo, 1, 0),
+  (22, 4, 22, 3, 'victor.alarcon@movilbus.test', @hash_demo, 1, 0),
+  (23, 4, 23, 3, 'noemi.cajusol@movilbus.test', @hash_demo, 1, 0),
+  (24, 4, 24, 3, 'franco.delgado@movilbus.test', @hash_demo, 1, 0),
+  (25, 5, 25, 1, 'pgiraldo@pomalca.com.pe', @hash_demo, 1, 0),
+  (26, 5, 26, 2, 'oscar.rojas@pomalca.test', @hash_demo, 1, 0),
+  (27, 5, 27, 2, 'gladys.cabrera@pomalca.test', @hash_demo, 1, 0),
+  (28, 5, 28, 3, 'manuel.idrogo@pomalca.test', @hash_demo, 1, 0),
+  (29, 5, 29, 3, 'teresa.vera@pomalca.test', @hash_demo, 1, 0),
+  (30, 5, 30, 3, 'alonso.tapia@pomalca.test', @hash_demo, 1, 0),
+  (31, 6, 31, 1, 'superadmin@sistema-tickets.test', @hash_demo, 1, 1);
 
 -- tickets (las áreas se toman del solicitante)
 insert into tickets (id, empresa_id, solicitante_id, categoria_id, area_id, tecnico_id, asunto, descripcion, prioridad, estado, resuelto_en, created_at) values

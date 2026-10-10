@@ -54,6 +54,18 @@
       </svg></button>
   </form>
   <div class="profile">
+    {% if usuario_actual.superadmin %}
+    <form class="company-switch" method="post" action="{{ url_for('auth.cambiar_empresa') }}">
+      <label class="sr-only" for="company-select">Empresa con la que trabajas</label>
+      <select id="company-select" name="empresa_id" onchange="this.form.submit()">
+        {% for e in usuario_actual.empresas %}
+        <option value="{{ e.id }}" {{ 'selected' if e.id == usuario_actual.empresa_id }}>{{ e.nombre }}</option>
+        {% endfor %}
+      </select>
+    </form>
+    {% elif usuario_actual.empresa_nombre %}
+    <span class="company-name">{{ usuario_actual.empresa_nombre }}</span>
+    {% endif %}
     <a class="icon-button notification-bell" href="/notificaciones" aria-label="Notificaciones"><svg class="icon"
         viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M10 21h4" />

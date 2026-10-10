@@ -89,6 +89,8 @@ create table roles (
 
 -- módulo 1: autenticación y usuarios.
 -- el password guarda el hash bcrypt, nunca la contraseña en texto.
+-- es_superadmin = 1 marca al administrador general del sistema (el grupo): no pertenece a una
+-- empresa cliente y puede cambiar de empresa desde la aplicación para gestionarlas y probarlas.
 
 use db_sistema_tickets_ti;
 
@@ -113,6 +115,7 @@ create table usuarios (
     email      varchar(160) not null unique,
     password   varchar(255) not null,
     activo     tinyint(1) not null default 1,
+    es_superadmin tinyint(1) not null default 0,
     created_at timestamp not null default current_timestamp,
     index idx_usuarios_empresa_rol (empresa_id, rol_id, activo),
     foreign key (empresa_id) references empresas (id),
@@ -371,7 +374,7 @@ begin
     values (p_usuario_id, p_ticket_id, p_tipo, p_mensaje);
 end$$
 
--- módulo 3: asigna un técnico a un ticket (lo hace un administrador de la misma empresa).
+-- módulo 3: asigna un técnico a un ticket (lo hace un administrador de la empresa o el administrador general).
 -- la notificación al técnico la crea el trigger trg_historial_ai.
 -- ejemplo: call sp_asignar_ticket(1, 2, 1, 'Atender con prioridad');
 create procedure sp_asignar_ticket(
@@ -408,7 +411,7 @@ begin
     select count(*) into v_es_admin
       from usuarios u
       join roles r on r.id = u.rol_id
-     where u.id = p_admin_id and u.empresa_id = v_empresa and u.activo = 1 and r.nombre = 'Administrador';
+     where u.id = p_admin_id and (u.empresa_id = v_empresa or u.es_superadmin = 1) and u.activo = 1 and r.nombre = 'Administrador';
 
     if v_es_admin = 0 then
         signal sqlstate '45000' set message_text = 'Solo un administrador de la empresa puede asignar tickets';
@@ -485,7 +488,7 @@ begin
     select r.nombre into v_rol
       from usuarios u
       join roles r on r.id = u.rol_id
-     where u.id = p_usuario_id and u.empresa_id = v_empresa and u.activo = 1;
+     where u.id = p_usuario_id and (u.empresa_id = v_empresa or u.es_superadmin = 1) and u.activo = 1;
 
     if v_rol is null or not (v_rol = 'Administrador' or (v_rol = 'Técnico' and v_tecnico = p_usuario_id)) then
         signal sqlstate '45000' set message_text = 'Solo el administrador o el técnico asignado puede cambiar el estado';
@@ -546,7 +549,7 @@ begin
     select r.nombre into v_rol
       from usuarios u
       join roles r on r.id = u.rol_id
-     where u.id = p_usuario_id and u.empresa_id = v_empresa and u.activo = 1;
+     where u.id = p_usuario_id and (u.empresa_id = v_empresa or u.es_superadmin = 1) and u.activo = 1;
 
     if v_rol is null then
         signal sqlstate '45000' set message_text = 'El usuario no pertenece a la empresa del ticket';
@@ -655,12 +658,15 @@ begin
     set new.email = lower(trim(new.email));
 end$$
 
--- módulo 2: un ticket no puede mezclar datos de otra empresa.
+-- módulo 2: un ticket no puede mezclar datos de otra empresa (el administrador general es la excepción).
 -- si no se indica el área, se toma la del solicitante.
 create trigger trg_tickets_bi before insert on tickets
 for each row
 begin
-    if (select empresa_id from usuarios where id = new.solicitante_id) <> new.empresa_id then
+    if exists (select 1 from usuarios
+                where id = new.solicitante_id
+                  and empresa_id <> new.empresa_id
+                  and es_superadmin = 0) then
         signal sqlstate '45000' set message_text = 'El solicitante no pertenece a la empresa del ticket';
     end if;
 

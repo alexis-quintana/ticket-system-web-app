@@ -24,3 +24,8 @@ button:disabled{cursor:not-allowed}button:hover:not(:disabled),a.button:hover{fi
 .report-brand{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px 0;border-bottom:2px solid #333f4a;margin-bottom:20px}.report-brand img{width:160px;height:auto}.report-brand span{color:var(--color-muted);font-size:13px}.report-footer{font-size:12px;color:var(--color-muted);border-top:1px solid var(--color-border);padding-top:12px;margin-top:20px}
 @media(max-width:650px){.table-tools label{width:100%;justify-content:space-between}.table-tools .page-summary{margin:0;width:100%}.ticket-table{min-width:740px}.report-brand{align-items:start;flex-direction:column}.chart-card{overflow-wrap:anywhere}}
 @media print{.sidebar,.topbar,.table-tools,.skip-link,.context-help{display:none!important}.print-all-rows tr[hidden]{display:table-row!important}.report-brand{padding-top:0}.report-brand img{width:125px}.report-table td{font-size:9px}.report-footer{font-size:9px}@page{size:A4 landscape;margin:14mm;@bottom-right{content:"Página " counter(page) " de " counter(pages);font-size:9px;color:#657583}}}
+
+/* Empresa activa en la barra superior (multiempresa) */
+.company-name{font-size:13px;font-weight:600;color:var(--color-muted);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.company-switch select{min-height:40px;max-width:240px;border:1px solid var(--color-border);border-radius:10px;background:white;color:var(--color-navigation);padding:6px 10px;font-size:13px;font-weight:600}
+@media(max-width:800px){.company-name{display:none}.company-switch select{max-width:130px}}

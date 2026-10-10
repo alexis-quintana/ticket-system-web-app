@@ -23,7 +23,7 @@ begin
     values (p_usuario_id, p_ticket_id, p_tipo, p_mensaje);
 end$$
 
--- módulo 3: asigna un técnico a un ticket (lo hace un administrador de la misma empresa).
+-- módulo 3: asigna un técnico a un ticket (lo hace un administrador de la empresa o el administrador general).
 -- la notificación al técnico la crea el trigger trg_historial_ai.
 -- ejemplo: call sp_asignar_ticket(1, 2, 1, 'Atender con prioridad');
 create procedure sp_asignar_ticket(
@@ -60,7 +60,7 @@ begin
     select count(*) into v_es_admin
       from usuarios u
       join roles r on r.id = u.rol_id
-     where u.id = p_admin_id and u.empresa_id = v_empresa and u.activo = 1 and r.nombre = 'Administrador';
+     where u.id = p_admin_id and (u.empresa_id = v_empresa or u.es_superadmin = 1) and u.activo = 1 and r.nombre = 'Administrador';
 
     if v_es_admin = 0 then
         signal sqlstate '45000' set message_text = 'Solo un administrador de la empresa puede asignar tickets';
@@ -137,7 +137,7 @@ begin
     select r.nombre into v_rol
       from usuarios u
       join roles r on r.id = u.rol_id
-     where u.id = p_usuario_id and u.empresa_id = v_empresa and u.activo = 1;
+     where u.id = p_usuario_id and (u.empresa_id = v_empresa or u.es_superadmin = 1) and u.activo = 1;
 
     if v_rol is null or not (v_rol = 'Administrador' or (v_rol = 'Técnico' and v_tecnico = p_usuario_id)) then
         signal sqlstate '45000' set message_text = 'Solo el administrador o el técnico asignado puede cambiar el estado';
@@ -198,7 +198,7 @@ begin
     select r.nombre into v_rol
       from usuarios u
       join roles r on r.id = u.rol_id
-     where u.id = p_usuario_id and u.empresa_id = v_empresa and u.activo = 1;
+     where u.id = p_usuario_id and (u.empresa_id = v_empresa or u.es_superadmin = 1) and u.activo = 1;
 
     if v_rol is null then
         signal sqlstate '45000' set message_text = 'El usuario no pertenece a la empresa del ticket';
