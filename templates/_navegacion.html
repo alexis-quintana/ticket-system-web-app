@@ -46,7 +46,8 @@
     </svg></button>
   <form id="global-search" class="global-search" role="search" action="/tickets" method="get">
     <label class="sr-only" for="global-query">Buscar tickets</label>
-    <input id="global-query" name="q" placeholder="Buscar tickets . . ." autocomplete="off">
+    <input id="global-query" name="q" placeholder="Buscar tickets . . ." autocomplete="off"
+      value="{{ request.args.get('q', '') if request.path.startswith('/tickets') }}">
     <button aria-label="Buscar"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <circle cx="10" cy="10" r="7" />
         <path d="m15 15 6 6" />

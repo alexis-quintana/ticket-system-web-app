@@ -1,13 +1,15 @@
 import os, uuid
 from flask import (Blueprint, render_template, request, jsonify, session,
-                   current_app, send_from_directory, abort)
+                   current_app, send_from_directory, abort, redirect, url_for)
 from db import obtener_conexion
 from modules.auth import roles_required
+from modules.sla import calcular_sla, SLA_HORAS   # INTEGRACIÓN: semáforo SLA en el listado (Módulo 4)
 
 bp = Blueprint("tickets", __name__, url_prefix="/tickets")
 
 PRIORIDADES = ("Alta", "Media", "Baja")
 ESTADOS = ("Abierto", "En proceso", "Resuelto", "Cerrado")
+SLA_CSS = {"verde": "green", "amarillo": "yellow", "rojo": "red"}   # INTEGRACIÓN: clases de tickets.css
 
 # ---------- Evidencias (fotos) ----------
 MAX_FOTOS = 3
@@ -41,7 +43,13 @@ def _leer_foto(f):
 @roles_required()
 def listar():
     emp = session["empresa_id"]
-    sql = ("SELECT t.id, t.asunto, t.prioridad, t.estado, t.created_at, c.nombre AS categoria, "
+    # INTEGRACIÓN: búsqueda (?q=, también desde la barra superior) y filtros de estado/prioridad
+    q = request.args.get("q", "").strip()
+    estado = request.args.get("estado", "")
+    estado = estado if estado in ESTADOS else ""
+    prioridad = request.args.get("prioridad", "")
+    prioridad = prioridad if prioridad in PRIORIDADES else ""
+    sql = ("SELECT t.id, t.asunto, t.prioridad, t.estado, t.created_at, t.resuelto_en, c.nombre AS categoria, "
            "(SELECT MIN(e.id) FROM ticket_evidencias e WHERE e.ticket_id = t.id) AS evidencia_id, "
            "(SELECT COUNT(*) FROM ticket_evidencias e WHERE e.ticket_id = t.id) AS total_evidencias "
            "FROM tickets t JOIN categorias c ON c.id = t.categoria_id "
@@ -50,6 +58,14 @@ def listar():
     if session["rol"] == "Solicitante":
         sql += " AND t.solicitante_id=%s"
         params.append(session["usuario_id"])
+    if q:
+        numero = q.upper().removeprefix("TK-").lstrip("#")
+        sql += " AND (t.asunto LIKE %s OR t.id = %s)"
+        params += [f"%{q}%", int(numero) if numero.isdigit() else 0]
+    if estado:
+        sql += " AND t.estado=%s"; params.append(estado)
+    if prioridad:
+        sql += " AND t.prioridad=%s"; params.append(prioridad)
     sql += " ORDER BY t.id DESC"
     con = obtener_conexion()
     try:
@@ -58,7 +74,20 @@ def listar():
             lista = cur.fetchall()
     finally:
         con.close()
-    return render_template("tickets/listado.html", tickets=lista)
+    for t in lista:   # INTEGRACIÓN: semáforo con la misma función que usa el historial
+        s = calcular_sla(t["prioridad"], t["created_at"], t["estado"], t["resuelto_en"])
+        t["sla"] = {"clase": SLA_CSS[s["color"]], "estado": s["texto"].split(" · ")[0],
+                    "detalle": s["texto"].split(" · ")[1]}
+    return render_template("tickets/listado.html", tickets=lista, estados=ESTADOS, prioridades=PRIORIDADES,
+                           f={"q": q, "estado": estado, "prioridad": prioridad}, sla_horas=SLA_HORAS)
+
+
+# INTEGRACIÓN: enlace corto al detalle (lo usan el listado y las notificaciones).
+# El detalle vive en el Módulo 3, que ya valida empresa y permisos.
+@bp.route("/<int:ticket_id>")
+@roles_required()
+def detalle(ticket_id):
+    return redirect(url_for("historial.ver_historial", ticket_id=ticket_id))
 
 @bp.route("/nuevo")
 @roles_required()
