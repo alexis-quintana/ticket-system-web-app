@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="es">
+{% from "_navegacion.html" import sidebar, topbar with context %}
 
 <head>
   <meta charset="utf-8">
@@ -17,68 +18,9 @@
 
 <body>
   <div class="app-shell">
-    <aside class="sidebar" id="sidebar" aria-label="Navegación principal">
-      <a class="sidebar-brand" href="/"><img src="{{ url_for('static', filename='img/lexfixer-brand.png') }}"
-          alt="Lexfixer"></a>
-      <nav>
-        <a class="nav-item {% if request.path.startswith('/') and '/' != '/' or (request.path == '/' and '/' == '/') %}active{% endif %}"
-          href="/"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="m3 10 9-8 9 8v11H3zM9 21V12h6v9" />
-          </svg><span>Inicio</span></a>
-        <a class="nav-item {% if request.path.startswith('/dashboard') and '/dashboard' != '/' or (request.path == '/' and '/dashboard' == '/') %}active{% endif %}"
-          href="/dashboard"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="m12 2 10 6-10 6L2 8zM2 12l10 6 10-6M2 16l10 6 10-6" />
-          </svg><span>Dashboard</span></a>
-        <a class="nav-item {% if request.path.startswith('/tickets') and '/tickets' != '/' or (request.path == '/' and '/tickets' == '/') %}active{% endif %}"
-          href="/tickets"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <rect x="4" y="4" width="16" height="18" rx="2" />
-            <rect x="9" y="2" width="6" height="4" rx="1" />
-          </svg><span>Tickets</span></a>
-        {% if usuario_actual.rol == 'Administrador' %}<a
-          class="nav-item {% if request.path.startswith('/usuarios') and '/usuarios' != '/' or (request.path == '/' and '/usuarios' == '/') %}active{% endif %}"
-          href="/usuarios"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <circle cx="9" cy="7" r="4" />
-            <path d="M2 22v-3a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v3M17 3a4 4 0 0 1 0 8M22 22v-3a5 5 0 0 0-4-5" />
-          </svg><span>Usuarios</span></a>{% endif %}
-        <a class="nav-item {% if request.path.startswith('/reportes') and '/reportes' != '/' or (request.path == '/' and '/reportes' == '/') %}active{% endif %}"
-          href="/reportes"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="m2 19 7-8 5 4 8-11M15 4h7v7" />
-          </svg><span>Reportes</span></a>
-      </nav>
-      <div class="sidebar-footer">
-        <strong>{{ usuario_actual.rol }}</strong>
-        <form method="post" action="{{ url_for('auth.logout') }}"><button class="logout" type="submit">Cerrar
-            sesión</button></form>
-      </div>
-    </aside>
+    {{ sidebar() }}
     <div class="app-workspace">
-      <header class="topbar">
-        <button class="icon-button menu-button" type="button" aria-label="Abrir menú"
-          onclick="document.getElementById('sidebar').classList.toggle('is-open')"><svg class="icon" viewBox="0 0 24 24"
-            aria-hidden="true" focusable="false">
-            <path d="M3 6h18M3 12h18M3 18h18" />
-          </svg></button>
-        <div class="flex-grow-1"></div>
-        <div class="profile">
-          <!-- Módulo 5 (notificaciones): aquí va la campana -->
-          <div class="dropdown">
-            <button class="btn border-0 d-flex align-items-center gap-2" data-bs-toggle="dropdown"
-              aria-expanded="false">
-              <span class="avatar">{{ usuario_actual.iniciales }}</span><strong>{{ usuario_actual.nombre }}</strong>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow">
-              <li><span class="dropdown-item-text small text-muted">{{ usuario_actual.rol }}</span></li>
-              <li>
-                <hr class="dropdown-divider">
-              </li>
-              <li>
-                <form method="post" action="{{ url_for('auth.logout') }}"><button class="dropdown-item"
-                    type="submit">Cerrar sesión</button></form>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </header>
+      {{ topbar() }}
       <section id="page-content" class="tickets-page">
         {% with mensajes = get_flashed_messages(with_categories=true) %}{% for cat, msg in mensajes %}
         <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">{{ msg }}<button type="button"
@@ -89,6 +31,8 @@
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/shell.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/notificaciones.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>
 
