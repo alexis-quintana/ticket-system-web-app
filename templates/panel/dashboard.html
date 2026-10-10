@@ -12,8 +12,8 @@
       {% if filtro %}<a class="chart-link" href="{{ url_for('tickets.listar', **{filtro: etiqueta}) }}">{% endif %}
       <div><span>{{ etiqueta }}</span><strong>{{ cantidad }} <small>({{ pct }}% de {{ unidad }})</small></strong></div>
       <div class="chart-track" role="img" aria-label="{{ etiqueta }}: {{ cantidad }}, {{ pct }}%">
-        <span class="chart-fill {{ 'tone-' ~ (loop.index0 % 4) if not colores }}"
-          style="width: {{ pct }}%{% if colores %}; background: {{ colores[etiqueta] }}{% endif %}"></span>
+        {% set estilo %}style="width: {{ pct }}%{% if colores %}; background: {{ colores[etiqueta] }}{% endif %}"{% endset %}
+        <span class="chart-fill {{ 'tone-' ~ (loop.index0 % 4) if not colores }}" {{ estilo }}></span>
       </div>
       {% if filtro %}</a>{% endif %}
     </li>

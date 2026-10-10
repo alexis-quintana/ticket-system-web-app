@@ -4,14 +4,14 @@
   {% for e in eventos %}
   <li>
     {% if e.tipo == 'Asignación' %}
-      <strong>Asignado a {{ e.tecnico }}</strong>
+    <strong>Asignado a {{ e.tecnico }}</strong>
     {% else %}
-      <strong>Cambio de estado</strong>
-      <span class="hist-flujo">
-        <span class="state-badge" data-state="{{ e.estado_anterior }}">{{ e.estado_anterior }}</span>
-        <span aria-hidden="true">→</span>
-        <span class="state-badge" data-state="{{ e.estado_nuevo }}">{{ e.estado_nuevo }}</span>
-      </span>
+    <strong>Cambio de estado</strong>
+    <span class="hist-flujo">
+      <span class="state-badge" data-state="{{ e.estado_anterior }}">{{ e.estado_anterior }}</span>
+      <span aria-hidden="true">→</span>
+      <span class="state-badge" data-state="{{ e.estado_nuevo }}">{{ e.estado_nuevo }}</span>
+    </span>
     {% endif %}
     <div class="history-metadata">
       <span>{{ e.autor }}</span>

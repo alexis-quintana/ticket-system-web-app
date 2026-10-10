@@ -62,7 +62,8 @@
       <span class="settings-icon"><i class="bi bi-stopwatch icon" aria-hidden="true"></i></span>
       <div>
         <h2>Plazos de atención (SLA)</h2>
-        <p class="settings-help">Tiempo máximo para resolver un ticket según su prioridad, contado desde su registro.</p>
+        <p class="settings-help">Tiempo máximo para resolver un ticket según su prioridad, contado desde su registro.
+        </p>
       </div>
     </header>
 
@@ -71,7 +72,8 @@
       <article class="sla-tile sla-tile-{{ prioridad|lower }}">
         <span class="sla-tile-name">Prioridad {{ prioridad }}</span>
         <strong>{{ horas }} <small>horas</small></strong>
-        {% if horas >= 24 and horas % 24 == 0 %}<span class="sla-tile-note">{{ horas // 24 }} {{ 'día' if horas // 24 == 1
+        {% if horas >= 24 and horas % 24 == 0 %}<span class="sla-tile-note">{{ horas // 24 }} {{ 'día' if horas // 24 ==
+          1
           else 'días' }}</span>{% endif %}
       </article>
       {% endfor %}

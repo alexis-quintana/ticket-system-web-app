@@ -27,7 +27,7 @@ Plataforma que permite registrar, asignar y hacer seguimiento de incidencias de 
 ## Cómo ejecutar
 
 1. Iniciar Apache y MySQL en XAMPP.
-2. En phpMyAdmin (pestaña SQL o Importar), ejecutar en orden `database/consolidado/sistema_tickets_creacion.sql` (crea la base, tablas, funciones, procedimientos y triggers) y luego `database/consolidado/sistema_tickets_datos.sql` (empresas, usuarios y tickets demo). Ambos se pueden volver a ejecutar para reiniciar. La misma estructura por módulos está en `database/modular/` (00 a 09).
+2. En phpMyAdmin (pestaña SQL o Importar), ejecutar en orden `database/sistema_tickets.sql` (crea la base, tablas, funciones, procedimientos y triggers) y luego `database/sistema_tickets_datos.sql` (empresas, usuarios y tickets demo). Ambos se pueden volver a ejecutar para reiniciar. La misma estructura dividida por módulos está en `database/00_reiniciar_base.sql` … `database/09_datos_demo.sql`.
 3. Ejecutar `setup.bat` (una sola vez por computadora).
 4. Ejecutar `run.bat` y abrir `http://127.0.0.1:5000/`.
 

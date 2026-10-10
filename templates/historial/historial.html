@@ -8,7 +8,8 @@
 {% endblock %}
 {% block content %}
 {% if usuario_actual.rol != 'Solicitante' %}
-{{ migas([('Inicio', url_for('panel.inicio')), ('Asignaciones', url_for('historial.asignaciones')), (t.id|codigo_ticket, none)]) }}
+{{ migas([('Inicio', url_for('panel.inicio')), ('Asignaciones', url_for('historial.asignaciones')), (t.id|codigo_ticket,
+none)]) }}
 {% else %}
 {{ migas([('Inicio', url_for('panel.inicio')), ('Tickets', url_for('tickets.listar')), (t.id|codigo_ticket, none)]) }}
 {% endif %}
@@ -24,17 +25,36 @@
         <span class="state-badge" data-state="{{ t.estado }}">{{ t.estado }}</span>
       </div>
       <dl class="ticket-facts">
-        <div><dt>Prioridad</dt><dd><span class="priority-badge" data-priority="{{ t.prioridad }}">{{ t.prioridad }}</span></dd></div>
-        <div><dt>SLA</dt><dd><span class="sla sla-{{ t.sla.clase }}"><strong>{{ t.sla.texto.split(' · ')[0] }}</strong>{{ t.sla.texto.split(' · ')[1] }}</span></dd></div>
-        <div><dt>Categoría</dt><dd>{{ t.categoria or '—' }}</dd></div>
-        <div><dt>Solicitante</dt><dd>{{ t.solicitante or '—' }}</dd></div>
-        <div><dt>Responsable</dt><dd>{{ t.tecnico or 'Sin asignar' }}</dd></div>
-        <div><dt>Creado</dt><dd>{{ t.created_at.strftime('%d/%m/%Y %H:%M') }}</dd></div>
+        <div>
+          <dt>Prioridad</dt>
+          <dd><span class="priority-badge" data-priority="{{ t.prioridad }}">{{ t.prioridad }}</span></dd>
+        </div>
+        <div>
+          <dt>SLA</dt>
+          <dd><span class="sla sla-{{ t.sla.clase }}"><strong>{{ t.sla.texto.split(' · ')[0] }}</strong>{{
+              t.sla.texto.split(' · ')[1] }}</span></dd>
+        </div>
+        <div>
+          <dt>Categoría</dt>
+          <dd>{{ t.categoria or '—' }}</dd>
+        </div>
+        <div>
+          <dt>Solicitante</dt>
+          <dd>{{ t.solicitante or '—' }}</dd>
+        </div>
+        <div>
+          <dt>Responsable</dt>
+          <dd>{{ t.tecnico or 'Sin asignar' }}</dd>
+        </div>
+        <div>
+          <dt>Creado</dt>
+          <dd>{{ t.created_at.strftime('%d/%m/%Y %H:%M') }}</dd>
+        </div>
       </dl>
       <h3>Descripción</h3>
       <p class="ticket-description">{{ t.descripcion }}</p>
     </article>
-     {% include "tickets/_evidencias.html" %}
+    {% include "tickets/_evidencias.html" %}
     <section class="detail-card" aria-labelledby="hist-titulo">
       <h2 id="hist-titulo">Historial del ticket</h2>
       {% include "historial/_timeline.html" %}
@@ -51,14 +71,14 @@
         {{ 'Reasignar técnico' if t.tecnico else 'Asignar técnico' }}</button>
       {% endif %}
     </section>
-    
+
     <section class="detail-card">
       <h2>Estado</h2>
       <p>Actual: <span class="state-badge" data-state="{{ t.estado }}">{{ t.estado }}</span></p>
       {% if t.puede_estado %}
       <button type="button" class="button btn-estado" data-id="{{ t.id }}" data-asunto="{{ t.asunto }}"
-        data-estado="{{ t.estado }}" data-siguientes="{{ t.siguientes|join(',') }}"
-        data-bs-toggle="modal" data-bs-target="#modal-estado">Cambiar estado</button>
+        data-estado="{{ t.estado }}" data-siguientes="{{ t.siguientes|join(',') }}" data-bs-toggle="modal"
+        data-bs-target="#modal-estado">Cambiar estado</button>
       {% elif t.estado == 'Cerrado' %}
       <p class="detail-muted">El ticket está cerrado y ya no admite cambios.</p>
       {% elif usuario_actual.rol != 'Solicitante' and not t.tecnico %}

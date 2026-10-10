@@ -23,20 +23,20 @@
   <div class="col-md-2"><label class="form-label small fw-semibold" for="f-estado">Estado</label>
     <select class="form-select" id="f-estado" name="estado">
       <option value="">Todos</option>
-      {% for e in estados %}<option {{ 'selected' if f.estado == e }}>{{ e }}</option>{% endfor %}
+      {% for e in estados %}<option {{ 'selected' if f.estado==e }}>{{ e }}</option>{% endfor %}
     </select>
   </div>
   <div class="col-md-2"><label class="form-label small fw-semibold" for="f-prioridad">Prioridad</label>
     <select class="form-select" id="f-prioridad" name="prioridad">
       <option value="">Todas</option>
-      {% for p in prioridades %}<option {{ 'selected' if f.prioridad == p }}>{{ p }}</option>{% endfor %}
+      {% for p in prioridades %}<option {{ 'selected' if f.prioridad==p }}>{{ p }}</option>{% endfor %}
     </select>
   </div>
   {% if usuario_actual.rol == 'Administrador' %}
   <div class="col-md-2"><label class="form-label small fw-semibold" for="f-asignado">Responsable</label>
     <select class="form-select" id="f-asignado" name="asignado">
       <option value="">Todos</option>
-      <option value="sin" {{ 'selected' if f.asignado == 'sin' }}>Sin asignar</option>
+      <option value="sin" {{ 'selected' if f.asignado=='sin' }}>Sin asignar</option>
     </select>
   </div>
   {% endif %}
@@ -49,36 +49,48 @@
   <div class="table-scroll">
     <table class="ticket-table">
       <thead>
-        <tr><th>ID / asunto</th><th>Prioridad</th><th>Responsable</th><th>Estado</th><th>SLA</th><th>Acciones</th></tr>
+        <tr>
+          <th>ID / asunto</th>
+          <th>Prioridad</th>
+          <th>Responsable</th>
+          <th>Estado</th>
+          <th>SLA</th>
+          <th>Acciones</th>
+        </tr>
       </thead>
       <tbody>
         {% for t in tickets %}
         <tr>
-          <th scope="row"><span>{{ t.id|codigo_ticket }}</span><span class="detail-muted hist-asunto">{{ t.asunto }}</span></th>
+          <th scope="row"><span>{{ t.id|codigo_ticket }}</span><span class="detail-muted hist-asunto">{{ t.asunto
+              }}</span></th>
           <td><span class="priority-badge" data-priority="{{ t.prioridad }}">{{ t.prioridad }}</span></td>
           <td class="hist-responsable">{{ t.tecnico or 'Sin asignar' }}</td>
           <td><span class="state-badge" data-state="{{ t.estado }}">{{ t.estado }}</span></td>
-          <td><span class="sla sla-{{ t.sla.clase }}"><strong>{{ t.sla.texto.split(' · ')[0] }}</strong>{{ t.sla.texto.split(' · ')[1] }}</span></td>
-          <td class="hist-celda-acciones"><div class="hist-acciones">
-            <a class="row-action" href="{{ url_for('historial.ver_historial', ticket_id=t.id) }}">Ver historial</a>
-            {% if usuario_actual.rol == 'Administrador' and t.estado != 'Cerrado' %}
-            <button type="button" class="row-action btn-asignar" data-id="{{ t.id }}"
-              data-asunto="{{ t.asunto }}" data-tecnico="{{ t.tecnico_id or '' }}"
-              data-bs-toggle="modal" data-bs-target="#modal-asignar">{{ 'Reasignar' if t.tecnico else 'Asignar' }}</button>
-            {% endif %}
-            {% if t.puede_estado %}
-            <button type="button" class="row-action btn-estado" data-id="{{ t.id }}"
-              data-asunto="{{ t.asunto }}" data-estado="{{ t.estado }}"
-              data-siguientes="{{ t.siguientes|join(',') }}"
-              data-bs-toggle="modal" data-bs-target="#modal-estado">Cambiar estado</button>
-            {% endif %}
-          </div></td>
+          <td><span class="sla sla-{{ t.sla.clase }}"><strong>{{ t.sla.texto.split(' · ')[0] }}</strong>{{
+              t.sla.texto.split(' · ')[1] }}</span></td>
+          <td class="hist-celda-acciones">
+            <div class="hist-acciones">
+              <a class="row-action" href="{{ url_for('historial.ver_historial', ticket_id=t.id) }}">Ver historial</a>
+              {% if usuario_actual.rol == 'Administrador' and t.estado != 'Cerrado' %}
+              <button type="button" class="row-action btn-asignar" data-id="{{ t.id }}" data-asunto="{{ t.asunto }}"
+                data-tecnico="{{ t.tecnico_id or '' }}" data-bs-toggle="modal" data-bs-target="#modal-asignar">{{
+                'Reasignar' if t.tecnico else 'Asignar' }}</button>
+              {% endif %}
+              {% if t.puede_estado %}
+              <button type="button" class="row-action btn-estado" data-id="{{ t.id }}" data-asunto="{{ t.asunto }}"
+                data-estado="{{ t.estado }}" data-siguientes="{{ t.siguientes|join(',') }}" data-bs-toggle="modal"
+                data-bs-target="#modal-estado">Cambiar estado</button>
+              {% endif %}
+            </div>
+          </td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="empty-state">
-          <h2>No hay tickets para mostrar</h2>
-          <p class="detail-muted">Prueba con otros filtros o usa Limpiar.</p>
-        </td></tr>
+        <tr>
+          <td colspan="6" class="empty-state">
+            <h2>No hay tickets para mostrar</h2>
+            <p class="detail-muted">Prueba con otros filtros o usa Limpiar.</p>
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
