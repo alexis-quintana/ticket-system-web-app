@@ -1,4 +1,5 @@
 {% extends "base_app.html" %}
+{% from "_navegacion.html" import migas with context %}
 {% block titulo %}Dashboard{% endblock %}
 
 {# Gráfico de barras HTML (sin librerías). filas = [(etiqueta, cantidad, porcentaje)].
@@ -26,6 +27,7 @@
 
 {% block contenido %}
 <section id="page-content" tabindex="-1" class="tickets-page" aria-labelledby="page-title">
+  {{ migas([('Inicio', url_for('panel.inicio')), ('Dashboard', none)]) }}
   <h1 id="page-title" tabindex="-1">Dashboard</h1>
   <p class="page-description">
     {% if usuario_actual.rol == 'Solicitante' %}Resumen de tus tickets.{% else %}Resumen de los tickets de tu

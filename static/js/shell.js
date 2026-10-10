@@ -309,3 +309,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (aviso) aviso.textContent = 'Preferencias restablecidas.';
   });
 });
+
+// Botones "Copiar" (data-copy="texto"): copia al portapapeles y avisa en el mismo botón.
+document.addEventListener('click', async e => {
+  const boton = e.target.closest('[data-copy]');
+  if (!boton) return;
+  const texto = boton.dataset.copy;
+  let ok = false;
+  try {
+    await navigator.clipboard.writeText(texto);
+    ok = true;
+  } catch (err) {
+    const campo = document.createElement('textarea');
+    campo.value = texto;
+    campo.style.position = 'fixed';
+    campo.style.opacity = '0';
+    document.body.appendChild(campo);
+    campo.select();
+    try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
+    campo.remove();
+  }
+  const etiqueta = boton.querySelector('span') || boton;
+  const original = etiqueta.textContent;
+  etiqueta.textContent = ok ? '¡Copiado!' : 'No se pudo copiar';
+  setTimeout(() => { etiqueta.textContent = original; }, 2000);
+});

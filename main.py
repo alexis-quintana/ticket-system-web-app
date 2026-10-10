@@ -30,6 +30,10 @@ app.register_blueprint(sla_bp)
 from modules.notificaciones import bp as notificaciones_bp
 app.register_blueprint(notificaciones_bp)
 
+# Módulo 5 — Comentarios del ticket (generan la notificación de tipo comentario)
+from modules.comentarios import bp as comentarios_bp
+app.register_blueprint(comentarios_bp)
+
 # Módulo 6 — Reportes (por ahora: página "en construcción")
 from modules.reportes import bp as reportes_bp
 app.register_blueprint(reportes_bp)

@@ -1,8 +1,10 @@
 {% extends "base_app.html" %}
+{% from "_navegacion.html" import migas with context %}
 {% block titulo %}Configuración{% endblock %}
 
 {% block contenido %}
 <section id="page-content" tabindex="-1" class="tickets-page settings-page" aria-labelledby="page-title">
+  {{ migas([('Inicio', url_for('panel.inicio')), ('Configuración', none)]) }}
   <h1 id="page-title" tabindex="-1">Configuración</h1>
   <p class="page-description">Ajusta cómo se ve el sistema y revisa las reglas de atención de tu empresa.</p>
 
@@ -79,7 +81,7 @@
       {% endfor %}
     </div>
 
-    <ul class="sla-legend">
+    <ul class="sla-key">
       <li><span class="legend-dot legend-green"></span><span><strong>En plazo</strong> · queda más del 25% del
           tiempo</span></li>
       <li><span class="legend-dot legend-yellow"></span><span><strong>Por vencer</strong> · queda el 25% o

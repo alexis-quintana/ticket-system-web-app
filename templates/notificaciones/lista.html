@@ -10,7 +10,7 @@
             <h1 id="page-title" tabindex="-1">Notificaciones</h1>
             <p class="page-description">Asignaciones, cambios de estado y comentarios de tus tickets.</p>
         </div>
-        <form method="post" action="{{ url_for('notificaciones.marcar_todas') }}">
+        <form method="post" action="{{ url_for('notificaciones.marcar_todas') }}" data-ajax="todas">
             <button type="submit" class="button" id="notes-read-all" {% if no_leidas==0 %} disabled{% endif %}>Marcar
                 todas como leídas</button>
         </form>
@@ -36,7 +36,7 @@
         <a class="row-action" href="{{ url_for('notificaciones.lista') }}">Limpiar filtros</a>
     </form>
 
-    <p id="notes-summary" role="status" aria-live="polite">{{ no_leidas }} no leídas · {{ notificaciones|length }} de {{
+    <p id="notes-summary" role="status" aria-live="polite" data-total="{{ total }}" data-mostradas="{{ notificaciones|length }}"><span id="notes-unread">{{ no_leidas }}</span> no leídas · {{ notificaciones|length }} de {{
         total }} notificaciones</p>
 
     {% if not notificaciones %}
@@ -65,7 +65,7 @@
                 <a class="row-action" href="{{ url_for('tickets.detalle', ticket_id=n.ticket_id) }}">Ver ticket {{
                     n.ticket_id|codigo_ticket }}</a>
                 {% if not n.leida %}
-                <form method="post" action="{{ url_for('notificaciones.marcar_leida', notificacion_id=n.id) }}">
+                <form method="post" action="{{ url_for('notificaciones.marcar_leida', notificacion_id=n.id) }}" data-ajax="una">
                     <button type="submit" class="row-action">Marcar como leída<span class="sr-only">: ticket {{
                             n.ticket_id }} · {{ tipos[n.tipo] }}</span></button>
                 </form>

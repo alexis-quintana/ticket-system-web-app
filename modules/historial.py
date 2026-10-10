@@ -80,18 +80,6 @@ def _puede_cambiar_estado(t):
     return rol == "Administrador" or (rol == "Técnico" and t["tecnico_id"] == session["usuario_id"])
 
 
-def _notificar(cur, emp, destino, tipo, ticket_id):
-    """Gancho al Módulo 5 (Quintana). Si su tabla aún no existe o tiene otras columnas,
-    se ignora el error y el historial se guarda igual. AJUSTAR cuando exista 05_notificaciones.sql."""
-    if not destino or destino == session["usuario_id"]:
-        return
-    try:
-        cur.execute("INSERT INTO notificaciones (empresa_id, usuario_id, tipo, ticket_id) "
-                    "VALUES (%s,%s,%s,%s)", (emp, destino, tipo, ticket_id))
-    except Exception as e:
-        print("Notificación omitida:", repr(e))
-
-
 def _sla_de(t):
     """Semáforo con la función del Módulo 4. Usa tickets.resuelto_en para detener el contador."""
     s = calcular_sla(t["prioridad"], t["created_at"], t["estado"], t["resuelto_en"])
@@ -199,7 +187,6 @@ def asignar(ticket_id):
                         "estado_anterior, estado_nuevo, tecnico_id, comentario) "
                         "VALUES (%s,%s,%s,'Asignación',%s,%s,%s,%s)",
                         (emp, ticket_id, yo, t["estado"], t["estado"], tec["id"], comentario))
-            _notificar(cur, emp, tec["id"], "asignacion", ticket_id)
         con.commit()
         return jsonify(ok=True, mensaje="Ticket asignado a " + tec["nombre"] + ".")
     except Exception as e:
@@ -254,7 +241,6 @@ def cambiar_estado(ticket_id):
                         "estado_anterior, estado_nuevo, comentario) "
                         "VALUES (%s,%s,%s,'Cambio de estado',%s,%s,%s)",
                         (emp, ticket_id, yo, t["estado"], nuevo, comentario))
-            _notificar(cur, emp, t["solicitante_id"], "cambio_estado", ticket_id)
         con.commit()
         return jsonify(ok=True, mensaje="Estado actualizado a " + nuevo + ".")
     except Exception as e:
