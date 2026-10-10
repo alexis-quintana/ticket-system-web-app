@@ -1,8 +1,10 @@
 {% extends "auth/_layout.html" %}
+{% from "_navegacion.html" import migas with context %}
 {% block title %}Usuarios{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/validacion.css') }}">{% endblock %}
 {% block content %}
+{{ migas([('Inicio', url_for('panel.inicio')), ('Usuarios', none)]) }}
 <div class="users-heading">
   <div>
     <h1 id="page-title">Usuarios</h1>
@@ -34,9 +36,9 @@
   </div>
 </form>
 
-<p class="text-muted small">{{ usuarios|length }} usuario(s)</p>
+<p class="table-count users-total">{{ usuarios|length }} usuario(s)</p>
 <div class="users-table-wrap">
-  <table class="table table-hover align-middle mb-0">
+  <table class="users-table">
     <thead>
       <tr>
         <th>Usuario</th>
@@ -49,13 +51,12 @@
     <tbody>
       {% for u in usuarios %}
       <tr>
-        <td><strong>{{ u.nombres }} {{ u.apellidos }}</strong><br><small class="text-muted">{{ u.email }}{% if u.dni %}
+        <td class="user-cell"><strong>{{ u.nombres }} {{ u.apellidos }}</strong><small class="user-meta">{{ u.email }}{% if u.dni %}
             · DNI {{ u.dni }}{% endif %}</small></td>
-        <td><span
-            class="badge text-bg-{{ {'Administrador':'dark','Técnico':'primary','Solicitante':'info'}[u.rol] }}">{{
+        <td><span class="role-badge role-{{ {'Administrador':'admin','Técnico':'tecnico','Solicitante':'solicitante'}[u.rol] }}">{{
             u.rol }}</span></td>
         <td>{{ u.area or '—' }}</td>
-        <td><span class="badge text-bg-{{ 'success' if u.activo else 'secondary' }}">{{ 'Activo' if u.activo else
+        <td><span class="user-status {{ 'active' if u.activo else 'inactive' }}">{{ 'Activo' if u.activo else
             'Inactivo' }}</span></td>
         <td><button class="secondary-button button-sm btn-editar" data-id="{{ u.id }}" data-nombres="{{ u.nombres }}"
             data-apellidos="{{ u.apellidos }}" data-dni="{{ u.dni or '' }}" data-telefono="{{ u.telefono or '' }}"
@@ -64,7 +65,7 @@
       </tr>
       {% else %}
       <tr>
-        <td colspan="5" class="text-center text-muted py-4">No hay usuarios que coincidan con los filtros.</td>
+        <td colspan="5" class="users-empty">No hay usuarios que coincidan con los filtros.</td>
       </tr>
       {% endfor %}
     </tbody>

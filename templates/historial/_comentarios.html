@@ -1,0 +1,36 @@
+{# Comentarios del ticket. Requiere la variable `t` (ticket con id, estado, solicitante_id, tecnico_id). #}
+{% set lista = comentarios_de(t.id) %}
+<section class="detail-card" id="comentarios" aria-labelledby="coment-titulo">
+  <h2 id="coment-titulo">Comentarios <span class="comment-count">{{ lista|length }}</span></h2>
+  {% if lista %}
+  <ul class="comment-list">
+    {% for c in lista %}
+    {% set partes = c.autor.split() %}
+    <li class="comment{% if c.usuario_id == session['usuario_id'] %} is-mine{% endif %}">
+      <span class="avatar comment-avatar" aria-hidden="true">{{ ((partes[0][0] ~ (partes[1][0] if partes|length > 1 else ''))|upper) }}</span>
+      <div class="comment-body">
+        <div class="comment-meta">
+          <strong>{{ c.autor }}</strong><span class="comment-role">{{ c.rol }}</span>
+          <time datetime="{{ c.created_at.isoformat() }}" title="{{ c.created_at.strftime('%d/%m/%Y %H:%M') }}">{{ c.created_at|relativo }}</time>
+        </div>
+        <p>{{ c.comentario }}</p>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="detail-muted">Todavía no hay comentarios. Escribe el primero para avisar al solicitante o al técnico.</p>
+  {% endif %}
+
+  {% if puede_comentar(t) %}
+  <form class="comment-form" method="post" action="{{ url_for('comentarios.comentar', ticket_id=t.id) }}">
+    <label class="comment-label" for="comentario-nuevo">Añadir un comentario</label>
+    <textarea class="form-control" id="comentario-nuevo" name="comentario" rows="3" maxlength="1000" required
+      placeholder="Escribe tu comentario…"></textarea>
+    <div class="comment-actions"><span class="comment-hint"><i class="bi bi-bell icon" aria-hidden="true"></i>La otra parte recibirá una notificación.</span>
+      <button type="submit" class="button">Publicar comentario</button></div>
+  </form>
+  {% elif t.estado == 'Cerrado' %}
+  <p class="detail-muted">El ticket está cerrado y ya no admite comentarios.</p>
+  {% endif %}
+</section>

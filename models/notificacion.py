@@ -61,6 +61,21 @@ class Notificacion:
             conexion.close()
 
     @staticmethod
+    def recientes(usuario_id, limite=6):
+        """Últimas notificaciones para el desplegable de la campana (no leídas primero)."""
+        conexion = obtener_conexion()
+        try:
+            with conexion.cursor() as cursor:
+                cursor.execute(
+                    "SELECT id, ticket_id, tipo, mensaje, leida, created_at "
+                    "FROM notificaciones WHERE usuario_id = %s "
+                    "ORDER BY leida ASC, created_at DESC, id DESC LIMIT %s",
+                    (usuario_id, limite))
+                return cursor.fetchall()
+        finally:
+            conexion.close()
+
+    @staticmethod
     def marcar_leida(notificacion_id, usuario_id):
         conexion = obtener_conexion()
         try:

@@ -73,7 +73,21 @@
     {% elif usuario_actual.empresa_nombre %}
     <span class="company-name">{{ usuario_actual.empresa_nombre }}</span>
     {% endif %}
-    <a class="icon-button notification-bell" href="/notificaciones" aria-label="Notificaciones"><i class="bi bi-bell icon" aria-hidden="true"></i><span class="notification-count" id="contador-notificaciones" hidden>0</span></a>
+    <div class="notif-dropdown">
+      <button type="button" class="icon-button notification-bell" id="notif-toggle" aria-haspopup="true"
+        aria-expanded="false" aria-controls="notif-panel" aria-label="Notificaciones"><i class="bi bi-bell icon"
+          aria-hidden="true"></i><span class="notification-count" id="contador-notificaciones" hidden>0</span></button>
+      <div class="notif-panel" id="notif-panel" hidden>
+        <div class="notif-head">
+          <strong>Notificaciones</strong>
+          <button type="button" class="notif-read-all" id="notif-read-all">Marcar todas como leídas</button>
+        </div>
+        <ul class="notif-list" id="notif-list" aria-live="polite">
+          <li class="notif-empty">Cargando…</li>
+        </ul>
+        <a class="notif-foot" href="{{ url_for('notificaciones.lista') }}">Ver todas las notificaciones</a>
+      </div>
+    </div>
     <div class="profile-dropdown">
       <button type="button" id="profile-toggle" aria-expanded="false" aria-controls="profile-menu"
         aria-label="Abrir opciones de mi cuenta"><span class="avatar" aria-hidden="true">{{

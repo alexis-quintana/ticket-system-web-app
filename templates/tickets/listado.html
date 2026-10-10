@@ -1,9 +1,11 @@
 {% extends "base_app.html" %}
+{% from "_navegacion.html" import migas with context %}
 {% set seccion = 'Tickets' %}
 {% block titulo %}Tickets{% endblock %}
 
 {% block contenido %}
 <section id="page-content" tabindex="-1" class="tickets-page" aria-labelledby="page-title">
+  {{ migas([('Inicio', url_for('panel.inicio')), ('Tickets', none)]) }}
   <div class="users-heading">
     <div>
       <h1 id="page-title" tabindex="-1">Tickets</h1>
