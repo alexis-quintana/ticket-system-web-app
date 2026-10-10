@@ -38,7 +38,7 @@ def roles_required(*roles):
                 if request.path.startswith("/api"):
                     return jsonify(error="Sin permiso"), 403
                 flash("No tienes permiso para acceder a esa sección.", "danger")
-                return redirect(url_for("auth.login"))
+                return redirect("/inicio")   # ya tiene sesión: vuelve al inicio, no al login
             return fn(*a, **kw)
         return wrapper
     return deco
@@ -114,6 +114,8 @@ def _iniciar_sesion(u):
 # ---------- Login / logout ----------
 @bp.route("/login")
 def login():
+    if "usuario_id" in session:      # ya inició sesión: no vuelve a ver el formulario
+        return redirect("/inicio")
     return render_template("auth/login.html", email="", role="")
 
 

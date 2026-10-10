@@ -1,9 +1,10 @@
 {% extends "base_app.html" %}
+{% from "_navegacion.html" import migas with context %}
 {% block titulo %}Notificaciones{% endblock %}
 
 {% block contenido %}
 <section id="page-content" tabindex="-1" class="tickets-page notifications-page" aria-labelledby="page-title">
-    <a id="notes-back" href="/tickets">← Volver a tickets</a>
+    {{ migas([('Inicio', url_for('panel.inicio')), ('Notificaciones', none)]) }}
     <div class="notes-heading">
         <div>
             <h1 id="page-title" tabindex="-1">Notificaciones</h1>
@@ -61,7 +62,7 @@
             <p class="note-date"><time datetime="{{ n.created_at.isoformat() }}">{{ n.created_at.strftime('%d/%m/%Y
                     %H:%M') }}</time></p>
             <div class="note-actions">
-                <a class="row-action" href="/tickets/{{ n.ticket_id }}">Ver ticket {{ n.ticket_id }}</a>
+                <a class="row-action" href="{{ url_for('tickets.detalle', ticket_id=n.ticket_id) }}">Ver ticket {{ n.ticket_id|codigo_ticket }}</a>
                 {% if not n.leida %}
                 <form method="post" action="{{ url_for('notificaciones.marcar_leida', notificacion_id=n.id) }}">
                     <button type="submit" class="row-action">Marcar como leída<span class="sr-only">: ticket {{
