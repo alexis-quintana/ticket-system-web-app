@@ -12,7 +12,7 @@
     <a class="button" href="{{ url_for('tickets.nuevo') }}">+ Crear ticket</a>
   </div>
 
-  <form class="ticket-filters" method="get" action="{{ url_for('tickets.listar') }}" role="search"
+  <form class="ticket-filters" data-auto-submit method="get" action="{{ url_for('tickets.listar') }}" role="search"
     aria-label="Filtrar tickets">
     <label class="sr-only" for="f-q">Buscar por asunto o código</label>
     <input id="f-q" name="q" value="{{ f.q }}" placeholder="Buscar por asunto o código (TK-0001)" autocomplete="off">
@@ -47,7 +47,7 @@
         </thead>
         <tbody>
           {% for t in tickets %}
-          <tr>
+          <tr class="is-clickable" data-href="{{ url_for('tickets.detalle', ticket_id=t.id) }}">
             <th scope="row"><span><small>{{ t.id|codigo_ticket }}</small></span><span>{{ t.asunto }}</span></th>
             <td>{{ t.categoria }}</td>
             <td><span class="priority{{ ' priority-high' if t.prioridad == 'Alta' }}">{{ t.prioridad }}</span></td>

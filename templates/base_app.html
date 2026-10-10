@@ -9,6 +9,14 @@
     {{ sidebar() }}
     <div class="app-workspace">
       {{ topbar() }}
+      {% with mensajes = get_flashed_messages(with_categories=true) %}{% if mensajes %}
+      <div class="flash-stack" role="status" aria-live="polite">
+        {% for cat, msg in mensajes %}
+        <div class="flash flash-{{ cat }}"><span>{{ msg }}</span><button type="button" class="flash-close"
+            aria-label="Cerrar aviso">&times;</button></div>
+        {% endfor %}
+      </div>
+      {% endif %}{% endwith %}
       {% block contenido %}{% endblock %}
     </div>
   </div>

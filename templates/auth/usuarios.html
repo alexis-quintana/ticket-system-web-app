@@ -29,8 +29,8 @@
       <option value="0" {{ 'selected' if f.activo=='0' }}>Inactivo</option>
     </select>
   </div>
-  <div class="col-md-2 d-flex gap-2"><button class="btn btn-dark">Filtrar</button>
-    <a class="btn btn-outline-secondary" href="{{ url_for('auth.usuarios') }}">Limpiar</a>
+  <div class="col-md-2 d-flex gap-2"><button class="button">Filtrar</button>
+    <a class="secondary-button" href="{{ url_for('auth.usuarios') }}">Limpiar</a>
   </div>
 </form>
 
@@ -57,7 +57,7 @@
         <td>{{ u.area or '—' }}</td>
         <td><span class="badge text-bg-{{ 'success' if u.activo else 'secondary' }}">{{ 'Activo' if u.activo else
             'Inactivo' }}</span></td>
-        <td><button class="btn btn-sm btn-outline-dark btn-editar" data-id="{{ u.id }}" data-nombres="{{ u.nombres }}"
+        <td><button class="secondary-button button-sm btn-editar" data-id="{{ u.id }}" data-nombres="{{ u.nombres }}"
             data-apellidos="{{ u.apellidos }}" data-dni="{{ u.dni or '' }}" data-telefono="{{ u.telefono or '' }}"
             data-email="{{ u.email }}" data-rol="{{ u.rol }}" data-area="{{ u.area_id or '' }}"
             data-activo="{{ u.activo }}" data-bs-toggle="modal" data-bs-target="#modal-usuario">Editar</button></td>
@@ -128,9 +128,9 @@
         </div>
         <div id="mensaje"></div>
       </div>
-      <div class="modal-footer"><button type="button" class="btn btn-outline-secondary"
+      <div class="modal-footer"><button type="button" class="secondary-button"
           data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-dark" id="u-guardar">Registrar usuario</button>
+        <button class="button" id="u-guardar">Registrar usuario</button>
       </div>
     </form>
   </div>
@@ -141,8 +141,8 @@
   <div class="confirm-box">
     <p>¿Estás seguro de que deseas enviar el formulario?</p>
     <div class="confirm-actions">
-      <button id="confirmYes" class="btn btn-dark">Sí, enviar</button>
-      <button id="confirmNo" class="btn btn-outline-secondary">Cancelar</button>
+      <button id="confirmYes" class="button">Sí, enviar</button>
+      <button id="confirmNo" class="secondary-button">Cancelar</button>
     </div>
   </div>
 </div>

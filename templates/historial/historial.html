@@ -1,4 +1,5 @@
 {% extends "auth/_layout.html" %}
+{% from "_navegacion.html" import migas with context %}
 {% block title %}Historial {{ t.id|codigo_ticket }}{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/validacion.css') }}">
@@ -7,9 +8,9 @@
 {% endblock %}
 {% block content %}
 {% if usuario_actual.rol != 'Solicitante' %}
-<a class="detail-back" href="{{ url_for('historial.asignaciones') }}">← Volver a asignaciones</a>
+{{ migas([('Inicio', url_for('panel.inicio')), ('Asignaciones', url_for('historial.asignaciones')), (t.id|codigo_ticket, none)]) }}
 {% else %}
-<a class="detail-back" href="{{ url_for('tickets.listar') }}">← Volver a tickets</a>
+{{ migas([('Inicio', url_for('panel.inicio')), ('Tickets', url_for('tickets.listar')), (t.id|codigo_ticket, none)]) }}
 {% endif %}
 
 <div class="detail-grid">

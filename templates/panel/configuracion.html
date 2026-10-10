@@ -4,32 +4,97 @@
 {% block contenido %}
 <section id="page-content" tabindex="-1" class="tickets-page settings-page" aria-labelledby="page-title">
   <h1 id="page-title" tabindex="-1">Configuración</h1>
-  <p class="page-description">Ajustes de visualización y reglas de atención del sistema.</p>
+  <p class="page-description">Ajusta cómo se ve el sistema y revisa las reglas de atención de tu empresa.</p>
+
+  <div class="settings-card settings-account">
+    <span class="avatar settings-avatar" aria-hidden="true">{{ usuario_actual.iniciales }}</span>
+    <div class="settings-account-info">
+      <strong>{{ usuario_actual.nombre }}</strong>
+      <span>{{ usuario_actual.empresa_nombre or 'Sin empresa' }}</span>
+    </div>
+    <span class="settings-role">{{ usuario_actual.rol }}</span>
+    <a class="secondary-button" href="{{ url_for('panel.perfil') }}">Ver mi perfil</a>
+  </div>
 
   <form class="settings-card" id="preferences-form">
-    <h2>Preferencias de visualización</h2>
-    <p class="settings-help">Se guardan solo en este navegador y se aplican en todas las pantallas.</p>
-    <label class="settings-check"><input type="checkbox" name="large-text"> Texto más grande en tablas y
-      formularios</label>
-    <label class="settings-check"><input type="checkbox" name="reduce-motion"> Reducir animaciones</label>
-    <p id="preferences-feedback" role="status"></p>
+    <header class="settings-head">
+      <span class="settings-icon"><i class="bi bi-sliders icon" aria-hidden="true"></i></span>
+      <div>
+        <h2>Preferencias de visualización</h2>
+        <p class="settings-help">Se guardan solo en este navegador y se aplican en todas las pantallas.</p>
+      </div>
+    </header>
+
+    <label class="setting-row">
+      <span class="setting-icon"><i class="bi bi-fonts icon" aria-hidden="true"></i></span>
+      <span class="setting-text">
+        <strong>Texto más grande</strong>
+        <small>Aumenta la letra de tablas, formularios y párrafos para leer con más comodidad.</small>
+      </span>
+      <input type="checkbox" class="switch" role="switch" name="large-text">
+    </label>
+
+    <label class="setting-row">
+      <span class="setting-icon"><i class="bi bi-activity icon" aria-hidden="true"></i></span>
+      <span class="setting-text">
+        <strong>Reducir animaciones</strong>
+        <small>Quita transiciones y movimientos. Útil si te marean o si tu equipo es lento.</small>
+      </span>
+      <input type="checkbox" class="switch" role="switch" name="reduce-motion">
+    </label>
+
+    <div class="settings-preview" aria-label="Vista previa">
+      <span class="settings-preview-title">Vista previa</span>
+      <p><strong>TK-0001 · Impresora de recetas sin conexión</strong></p>
+      <p>Así se ve el texto de los tickets con tus preferencias actuales.</p>
+      <span class="ticket-status" data-state="En proceso">En proceso</span>
+    </div>
+
+    <div class="settings-actions">
+      <button type="button" class="secondary-button" data-reset-prefs><i class="bi bi-arrow-counterclockwise icon"
+          aria-hidden="true"></i>Restablecer</button>
+      <p id="preferences-feedback" role="status"></p>
+    </div>
   </form>
 
   <div class="settings-card">
-    <h2>Plazos de atención (SLA)</h2>
-    <p class="settings-help">Tiempo máximo para resolver un ticket según su prioridad, contado desde su registro.
-      El semáforo pasa a amarillo cuando queda el 25% del plazo o menos, y a rojo cuando vence.</p>
-    <div class="settings-columns">
+    <header class="settings-head">
+      <span class="settings-icon"><i class="bi bi-stopwatch icon" aria-hidden="true"></i></span>
+      <div>
+        <h2>Plazos de atención (SLA)</h2>
+        <p class="settings-help">Tiempo máximo para resolver un ticket según su prioridad, contado desde su registro.</p>
+      </div>
+    </header>
+
+    <div class="sla-tiles">
       {% for prioridad, horas in sla_horas.items() %}
-      <label>Prioridad {{ prioridad }}<input value="{{ horas }} horas" readonly></label>
+      <article class="sla-tile sla-tile-{{ prioridad|lower }}">
+        <span class="sla-tile-name">Prioridad {{ prioridad }}</span>
+        <strong>{{ horas }} <small>horas</small></strong>
+        {% if horas >= 24 and horas % 24 == 0 %}<span class="sla-tile-note">{{ horas // 24 }} {{ 'día' if horas // 24 == 1
+          else 'días' }}</span>{% endif %}
+      </article>
       {% endfor %}
     </div>
+
+    <ul class="sla-legend">
+      <li><span class="legend-dot legend-green"></span><span><strong>En plazo</strong> · queda más del 25% del
+          tiempo</span></li>
+      <li><span class="legend-dot legend-yellow"></span><span><strong>Por vencer</strong> · queda el 25% o
+          menos</span></li>
+      <li><span class="legend-dot legend-red"></span><span><strong>Vencido</strong> · el plazo ya pasó</span></li>
+    </ul>
   </div>
 
   <div class="settings-card">
-    <h2>Notificaciones</h2>
-    <p class="settings-help">La campana de la barra superior muestra tus avisos sin leer y se actualiza cada 30
-      segundos.</p>
+    <header class="settings-head">
+      <span class="settings-icon"><i class="bi bi-bell icon" aria-hidden="true"></i></span>
+      <div>
+        <h2>Notificaciones</h2>
+        <p class="settings-help">La campana de la barra superior muestra tus avisos sin leer y se actualiza cada 30
+          segundos.</p>
+      </div>
+    </header>
     <div><a class="secondary-button" href="{{ url_for('notificaciones.lista') }}">Ver mis notificaciones</a></div>
   </div>
 </section>

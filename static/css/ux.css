@@ -1,0 +1,1298 @@
+/* Mejoras de navegación e interactividad. Se carga al final, después de polish.css.
+   Respeta "Reducir animaciones" de Configuración (body.reduce-motion) y prefers-reduced-motion. */
+
+:root {
+  --ease: cubic-bezier(.2, .7, .3, 1);
+  --sombra-suave: 0 8px 24px #23344014;
+}
+
+/* ---------- Menú lateral ---------- */
+.nav-item {
+  text-decoration: none;
+  transition: background-color .18s var(--ease), transform .18s var(--ease);
+}
+
+.nav-item:hover {
+  transform: translateX(3px);
+}
+
+.nav-item.is-active:hover {
+  transform: none;
+}
+
+.logout,
+.sidebar-footer .logout {
+  transition: opacity .15s var(--ease);
+}
+
+.logout:hover {
+  opacity: .75;
+  text-decoration: underline;
+}
+
+/* Fondo oscuro detrás del menú en pantallas pequeñas */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  background: #1c233366;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s var(--ease);
+}
+
+.sidebar-backdrop.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---------- Avisos (flash) ---------- */
+.flash-info {
+  border-left-color: #527c90;
+  background: #edf4f7;
+}
+
+.flash strong {
+  color: inherit;
+}
+
+/* En el login el aviso va dentro del panel, ocupando solo su ancho */
+.login-panel .flash {
+  margin: 0 0 16px;
+  width: 100%;
+  font-size: 14px;
+  text-align: left;
+}
+
+.flash-stack {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0 0;
+}
+
+.flash {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border-left: 4px solid #527c90;
+  background: #edf4f7;
+  color: #293844;
+  font-size: 14px;
+  line-height: 1.5;
+  animation: flash-entra .25s var(--ease);
+}
+
+.flash-success {
+  border-left-color: var(--color-success);
+  background: #e8f5ed;
+}
+
+.flash-warning {
+  border-left-color: var(--color-warning);
+  background: #fff4d8;
+}
+
+.flash-danger {
+  border-left-color: var(--color-danger);
+  background: #fcecef;
+}
+
+.flash.is-hiding {
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity .25s var(--ease), transform .25s var(--ease);
+}
+
+.flash-close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.flash-close:hover {
+  background: #0000000d;
+}
+
+/* ---------- Páginas, tarjetas y botones ---------- */
+.tickets-page {
+  animation: pagina-entra .28s var(--ease);
+}
+
+.metric-card,
+.chart-card,
+.note-card,
+.detail-card,
+.settings-card {
+  transition: box-shadow .2s var(--ease), transform .2s var(--ease);
+}
+
+.metric-card:hover,
+.chart-card:hover,
+.note-card:hover {
+  box-shadow: var(--sombra-suave);
+  transform: translateY(-2px);
+}
+
+.button,
+.secondary-button,
+.row-action {
+  transition: background-color .15s var(--ease), box-shadow .15s var(--ease), transform .1s var(--ease), filter .15s var(--ease);
+}
+
+.button:active,
+.secondary-button:active {
+  transform: scale(.98);
+}
+
+.button:focus-visible,
+.secondary-button:focus-visible,
+.row-action:focus-visible {
+  outline: 3px solid #28708b;
+  outline-offset: 3px;
+}
+
+/* ---------- Tablas ---------- */
+.ticket-table tbody tr {
+  transition: background-color .15s var(--ease);
+}
+
+.ticket-table tbody tr:hover {
+  background: #f3f7fa;
+}
+
+.ticket-table tbody tr.is-clickable {
+  cursor: pointer;
+}
+
+.ticket-table tbody tr.is-clickable:focus-within {
+  background: #eaf3f8;
+}
+
+.evidence-thumb img {
+  transition: transform .2s var(--ease);
+}
+
+.evidence-thumb:hover img {
+  transform: scale(1.06);
+}
+
+/* ---------- Migas de pan ---------- */
+.breadcrumbs {
+  margin-bottom: 14px;
+}
+
+/* ---------- Pantallas pequeñas ---------- */
+@media (max-width: 800px) {
+  body.menu-open {
+    overflow: hidden;
+  }
+
+  .sidebar.is-open {
+    animation: menu-entra .2s var(--ease);
+  }
+
+  .flash-stack {
+    margin-top: 12px;
+  }
+}
+
+/* ---------- Animaciones ---------- */
+@keyframes pagina-entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes flash-entra {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes menu-entra {
+  from {
+    transform: translateX(-24px);
+    opacity: .6;
+  }
+
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Botones: un solo estilo propio (sin Bootstrap) ----------
+   Mismo alto, relleno, radio y tipografía para <a> y <button>, así quedan alineados. */
+body:has(.app-shell) .button,
+body:has(.app-shell) .secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  min-height: 42px;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+body:has(.app-shell) .button {
+  background: var(--color-navigation);
+  border-color: var(--color-navigation);
+  color: #fff;
+}
+
+body:has(.app-shell) .button:hover {
+  background: #26303a;
+}
+
+body:has(.app-shell) .secondary-button {
+  background: #fff;
+  border-color: var(--color-border);
+  color: var(--color-navigation);
+}
+
+body:has(.app-shell) .secondary-button:hover {
+  background: #eaf0f4;
+}
+
+body:has(.app-shell) .button-sm {
+  min-height: 34px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+/* Accesos rápidos de Inicio: misma altura y mismo espacio entre botones */
+.home-actions {
+  gap: 12px;
+}
+
+.home-actions>.button,
+.home-actions>.secondary-button {
+  min-height: 44px;
+}
+
+/* Barra de botones dentro de formularios y ventanas */
+.modal-footer .button,
+.modal-footer .secondary-button {
+  min-width: 120px;
+}
+
+@media (max-width: 650px) {
+  .home-actions>.button,
+  .home-actions>.secondary-button {
+    flex: 1 1 100%;
+  }
+}
+
+/* ---------- Barra superior: selector de empresa y menú de cuenta ---------- */
+.company-switch select {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 40px;
+  min-height: 40px;
+  max-width: 260px;
+  padding: 0 38px 0 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333f4a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px;
+  color: var(--color-navigation);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: border-color .15s var(--ease), box-shadow .15s var(--ease);
+}
+
+.company-switch select:hover {
+  border-color: #b9c6d0;
+}
+
+.company-switch select:focus,
+.company-switch select:focus-visible {
+  outline: none;
+  border-color: #527c90;
+  box-shadow: 0 0 0 3px #527c9033;
+}
+
+.company-switch select option {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  color: #1f2a33;
+  background: #fff;
+}
+
+#profile-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 10px 4px 4px;
+  border: 0;
+  border-radius: 24px;
+  background: transparent;
+  color: #1f2a33;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color .15s var(--ease);
+}
+
+#profile-toggle:hover {
+  background: #f1f5f8;
+}
+
+#profile-toggle strong {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#profile-toggle .chevron {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--color-muted);
+  transition: transform .15s var(--ease);
+}
+
+#profile-toggle[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+@media (max-width: 800px) {
+  #profile-toggle strong {
+    display: none;
+  }
+}
+
+/* ---------- Cerrar sesión con icono (menú lateral) ---------- */
+.sidebar-footer .logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.sidebar-footer .logout .icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+/* ---------- Selector de empresa: mismo desplegable que el menú de cuenta ---------- */
+.company-switch {
+  position: relative;
+}
+
+.company-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  max-width: 260px;
+  padding: 0 12px 0 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  background: #fff;
+  color: var(--color-navigation);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color .15s var(--ease), border-color .15s var(--ease);
+}
+
+.company-toggle span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.company-toggle:hover {
+  background: #f1f5f8;
+}
+
+.company-toggle .chevron {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--color-muted);
+  transition: transform .15s var(--ease);
+}
+
+.company-toggle[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+.company-menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 10px);
+  z-index: 20;
+  min-width: 100%;
+  width: max-content;
+  max-width: 320px;
+  padding: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 12px 36px #22334420;
+}
+
+.company-menu[hidden] {
+  display: none;
+}
+
+.company-menu button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--color-navigation);
+  font-family: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.company-menu button:hover {
+  background: var(--color-background);
+}
+
+.company-menu button.is-current {
+  background: #edf4f7;
+  font-weight: 600;
+}
+
+@media (max-width: 800px) {
+  .company-toggle {
+    max-width: 150px;
+  }
+
+  .company-menu {
+    left: auto;
+    right: 0;
+  }
+}
+
+/* ---------- Tipografía: escala cómoda de lectura ----------
+   Mínimo 13 px para textos de apoyo, 14 px para tablas, controles y menús, 16 px para párrafos.
+   Se usa @media screen para no alterar la impresión de reportes, y selectores simples para que
+   la opción "Texto grande" de Configuración (settings.css) siga ganando. */
+:root {
+  --font-size-help: 13px;
+}
+
+@media screen {
+  body {
+    line-height: 1.5;
+  }
+
+  /* Textos de apoyo: antes 10–12 px */
+  .dash-caption,
+  .metric-card p,
+  .home-recent span,
+  .note-status,
+  .note-date,
+  .table-count,
+  .sla-help,
+  .extra-filters label,
+  .requester-info,
+  .evidence-item p,
+  .field-hint,
+  .field-error,
+  .form-error,
+  .ticket-facts dt,
+  .detail-muted,
+  .history-metadata,
+  .ticket-timeline small,
+  .sla-card>p,
+  .gallery-image span,
+  .users-table td span:not(.user-status),
+  .metric-link,
+  .report-brand span,
+  .report-footer {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* Etiquetas y estados (chips) */
+  .ticket-status,
+  .state-badge,
+  .priority-badge,
+  .user-status,
+  .status-chip,
+  .sla,
+  .sla-chip,
+  .secondary-action,
+  .badge {
+    font-size: 13px;
+  }
+
+  /* Tablas: cuerpo 14 px, encabezados 13 px */
+  .ticket-table td,
+  .ticket-table th,
+  .users-table td,
+  .report-table td,
+  .report-table {
+    font-size: 14px;
+  }
+
+  .ticket-table thead th,
+  .users-table th,
+  .report-table th {
+    font-size: 13px;
+    letter-spacing: .02em;
+  }
+
+  .ticket-table td,
+  .users-table td {
+    padding-block: 14px;
+  }
+
+  /* Navegación auxiliar, filtros y ayudas */
+  .breadcrumbs,
+  .table-tools,
+  .context-help,
+  .page-summary {
+    font-size: 14px;
+  }
+
+  .row-action,
+  .home-recent a {
+    font-size: 14px;
+  }
+
+  /* Formularios dentro de la aplicación */
+  .app-shell input:not([type=checkbox]):not([type=radio]),
+  .app-shell select,
+  .app-shell textarea,
+  .global-search input {
+    font-size: 15px;
+  }
+
+  .app-shell label,
+  .field-label {
+    font-size: 14px;
+  }
+
+  /* Barra superior y menú lateral */
+  .company-toggle,
+  .company-menu button,
+  .company-name {
+    font-size: 14px;
+  }
+
+  #profile-toggle strong {
+    font-size: 15px;
+  }
+
+  #profile-menu a,
+  #profile-menu button {
+    font-size: 15px;
+  }
+
+  .nav-item {
+    font-size: 17px;
+  }
+
+  .sidebar-footer,
+  .sidebar-footer .logout {
+    font-size: 15px;
+  }
+
+  /* Avisos */
+  .flash {
+    font-size: 15px;
+  }
+}
+
+/* Tipografía, segunda parte: títulos, descripciones y los textos de 13 px que faltaban */
+@media screen {
+  .tickets-page h1 {
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .page-description {
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 70ch;
+  }
+
+  .chart-card h2,
+  .home-welcome h2 {
+    font-size: 20px;
+  }
+
+  .dash-filters label,
+  .bar-chart li>div:first-child,
+  .chart-link>div:first-child,
+  .notifications-page>a,
+  .notes-filters label,
+  .note-actions,
+  #notes-summary,
+  #notes-feedback,
+  .settings-help,
+  .users-filters label,
+  #user-form label,
+  #users-count,
+  #users-feedback,
+  .user-help,
+  .detail-back,
+  .detail-meta,
+  .ticket-facts,
+  .ticket-timeline li,
+  .detail-card .field,
+  #viewer-position,
+  .confirmation-card>p,
+  .evidence-item strong,
+  .incident-card .field-label,
+  .report-actions span,
+  #report-summary,
+  #report-count,
+  #report-feedback,
+  #report-pending,
+  .ticket-filters>input,
+  .ticket-filters>select,
+  .ticket-filters>button {
+    font-size: 14px;
+  }
+
+  .incident-card .field-error,
+  .mail-tip p {
+    font-size: 13px;
+  }
+
+  .notification-count {
+    font-size: 11px;
+  }
+}
+
+/* Tabla de tickets: cada fila como tarjeta separada, con aire entre columnas */
+@media screen {
+  .ticket-table {
+    border-spacing: 0 10px;
+    min-width: 920px;
+    margin-top: -10px;
+  }
+
+  .ticket-table thead th {
+    padding: 8px 16px;
+  }
+
+  .ticket-table td,
+  .ticket-table tbody th {
+    padding: 16px;
+    border-block: 1px solid #e4eaf0;
+    background: #fff;
+    line-height: 1.45;
+    transition: background-color .15s var(--ease);
+  }
+
+  .ticket-table tbody tr+tr>* {
+    border-top: 1px solid #e4eaf0;
+  }
+
+  .ticket-table tbody tr> :first-child {
+    width: auto;
+    min-width: 230px;
+  }
+
+  .ticket-table tbody tr:hover>* {
+    background: #f3f7fa;
+  }
+
+  .ticket-table tbody tr {
+    background: transparent;
+  }
+
+  .ticket-table tbody th span:first-child {
+    margin-bottom: 4px;
+    color: var(--color-muted);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .ticket-table .row-action {
+    padding: 8px 4px;
+  }
+}
+
+/* ---------- Desplegables (combos) del sistema ---------- */
+.cbo {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+.cbo-full {
+  display: block;
+  width: 100%;
+}
+
+.cbo-native {
+  position: absolute !important;
+  inset: 0 auto auto 0;
+  width: 1px !important;
+  height: 1px !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.cbo-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--color-navigation);
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s var(--ease), box-shadow .15s var(--ease), background-color .15s var(--ease);
+}
+
+.cbo-toggle span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cbo-toggle:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #b9c6d0;
+}
+
+.cbo-toggle:focus-visible,
+.cbo-toggle[aria-expanded="true"] {
+  outline: none;
+  border-color: #527c90;
+  box-shadow: 0 0 0 3px #527c9033;
+}
+
+.cbo-toggle:disabled {
+  background: #f1f5f8;
+  color: var(--color-muted);
+  cursor: not-allowed;
+}
+
+.cbo-toggle .chevron {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--color-muted);
+  transition: transform .15s var(--ease);
+}
+
+.cbo-toggle[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+.cbo-menu {
+  position: fixed;
+  z-index: 2000;
+  width: max-content;
+  max-width: min(360px, calc(100vw - 16px));
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 12px 36px #22334420;
+  animation: flash-entra .15s var(--ease);
+}
+
+.cbo-option {
+  display: block;
+  width: 100%;
+  padding: 11px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--color-navigation);
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cbo-option:hover,
+.cbo-option:focus-visible {
+  outline: none;
+  background: var(--color-background);
+}
+
+.cbo-option.is-current {
+  background: #edf4f7;
+  font-weight: 600;
+}
+
+.cbo-option:disabled {
+  color: #9aa7b2;
+  cursor: not-allowed;
+}
+
+/* ---------- Iconos: Bootstrap Icons (<i class="bi bi-nombre icon">) ----------
+   El tamaño de cada icono lo sigue dando su contenedor (width/height de .icon en cada lugar);
+   el glifo se ajusta al 85 % de ese cuadro con unidades de contenedor. */
+i.bi.icon {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  container-type: size;
+  line-height: 1;
+  color: inherit;
+}
+
+i.bi.icon::before {
+  display: block;
+  font-size: 85cqmin;
+  line-height: 1;
+  vertical-align: 0;
+}
+
+/* Ajuste de iconos: trazo un poco más firme (como los de antes) y mismos tamaños que el menú */
+i.bi.icon::before {
+  -webkit-text-stroke: .55px currentColor;
+}
+
+.notification-bell {
+  color: var(--color-navigation);
+}
+
+.notification-bell .icon {
+  width: 26px;
+  height: 26px;
+}
+
+/* Cerrar sesión con la misma forma y tamaño que las opciones del menú */
+.sidebar-footer .logout {
+  gap: 16px;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 8px;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.sidebar-footer .logout:hover {
+  background: #ffffff0c;
+  opacity: 1;
+  text-decoration: none;
+}
+
+.sidebar-footer .logout .icon {
+  width: 32px;
+  height: 32px;
+}
+
+@media (max-width: 1100px) {
+  .sidebar-footer .logout {
+    font-size: 16px;
+    gap: 12px;
+  }
+
+  .sidebar-footer .logout .icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+.sidebar-footer form {
+  width: 100%;
+}
+
+/* Campana: sin subrayado de enlace y en gris azulado suave */
+.notification-bell,
+.notification-bell:hover,
+.notification-bell:focus {
+  text-decoration: none;
+}
+
+.notification-bell {
+  color: var(--color-muted);
+  transition: color .15s var(--ease), background-color .15s var(--ease);
+}
+
+.notification-bell:hover {
+  color: var(--color-navigation);
+  background: #f1f5f8;
+}
+
+.notification-bell .icon::before {
+  -webkit-text-stroke: 0;
+}
+
+/* Campana: mismo tono que tenía como SVG (#494949) */
+.notification-bell {
+  color: #494949;
+}
+
+.notification-bell:hover {
+  color: #222;
+}
+
+.notification-bell .icon::before {
+  -webkit-text-stroke: .55px currentColor;
+}
+
+/* ---------- Configuración ---------- */
+.settings-page {
+  max-width: 980px;
+}
+
+.settings-card {
+  padding: 28px;
+  gap: 22px;
+}
+
+.settings-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.settings-head h2 {
+  font-size: 20px;
+  margin: 0 0 4px;
+}
+
+.settings-icon,
+.setting-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #edf4f7;
+  color: #33637a;
+}
+
+.settings-icon .icon,
+.setting-icon .icon {
+  width: 22px;
+  height: 22px;
+}
+
+/* Resumen de la cuenta */
+.settings-account {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.settings-avatar {
+  width: 56px;
+  height: 56px;
+  font-size: 18px;
+}
+
+.settings-account-info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 200px;
+}
+
+.settings-account-info strong {
+  font-size: 18px;
+}
+
+.settings-account-info span {
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.settings-role {
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: #edf4f7;
+  color: #246780;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Filas de preferencias con interruptor */
+.settings-card .setting-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background-color .15s var(--ease), border-color .15s var(--ease);
+}
+
+.settings-card .setting-row:hover {
+  background: #f8fafc;
+  border-color: #c9d5de;
+}
+
+.setting-text {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.setting-text strong {
+  font-size: 16px;
+}
+
+.setting-text small {
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.settings-card input.switch {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 46px;
+  height: 26px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: #c4cfd8;
+  cursor: pointer;
+  transition: background-color .2s var(--ease);
+}
+
+.settings-card input.switch::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px #0003;
+  transition: transform .2s var(--ease);
+}
+
+.settings-card input.switch:checked {
+  background: #33637a;
+}
+
+.settings-card input.switch:checked::before {
+  transform: translateX(20px);
+}
+
+.settings-card input.switch:focus-visible {
+  outline: 3px solid #28708b;
+  outline-offset: 3px;
+}
+
+/* Vista previa */
+.settings-preview {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  padding: 18px;
+  border: 1px dashed #b9c6d0;
+  border-radius: 14px;
+  background: var(--color-background);
+}
+
+.settings-preview p {
+  margin: 0;
+}
+
+.settings-preview-title {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.settings-actions .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.settings-actions [role=status] {
+  margin: 0;
+  color: #177847;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Plazos SLA */
+.sla-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.sla-tile {
+  display: grid;
+  gap: 4px;
+  padding: 18px 20px;
+  border: 1px solid var(--color-border);
+  border-top: 4px solid #8ea3b3;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.sla-tile-alta {
+  border-top-color: var(--color-danger);
+}
+
+.sla-tile-media {
+  border-top-color: #e0a100;
+}
+
+.sla-tile-baja {
+  border-top-color: #527c90;
+}
+
+.sla-tile-name {
+  color: var(--color-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.sla-tile strong {
+  font-size: 32px;
+  line-height: 1.1;
+}
+
+.sla-tile strong small {
+  color: var(--color-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.sla-tile-note {
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.sla-legend {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.sla-legend li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.legend-dot {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legend-green {
+  background: var(--color-success);
+}
+
+.legend-yellow {
+  background: #e0a100;
+}
+
+.legend-red {
+  background: var(--color-danger);
+}
+
+@media (max-width: 800px) {
+  .settings-card {
+    padding: 20px;
+  }
+
+  .sla-tiles {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-card .setting-row {
+    align-items: flex-start;
+  }
+}
