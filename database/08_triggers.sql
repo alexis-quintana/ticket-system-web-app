@@ -18,12 +18,15 @@ begin
     set new.email = lower(trim(new.email));
 end$$
 
--- módulo 2: un ticket no puede mezclar datos de otra empresa.
+-- módulo 2: un ticket no puede mezclar datos de otra empresa (el administrador general es la excepción).
 -- si no se indica el área, se toma la del solicitante.
 create trigger trg_tickets_bi before insert on tickets
 for each row
 begin
-    if (select empresa_id from usuarios where id = new.solicitante_id) <> new.empresa_id then
+    if exists (select 1 from usuarios
+                where id = new.solicitante_id
+                  and empresa_id <> new.empresa_id
+                  and es_superadmin = 0) then
         signal sqlstate '45000' set message_text = 'El solicitante no pertenece a la empresa del ticket';
     end if;
 

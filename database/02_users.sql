@@ -1,5 +1,7 @@
 -- módulo 1: autenticación y usuarios.
 -- el password guarda el hash bcrypt, nunca la contraseña en texto.
+-- es_superadmin = 1 marca al administrador general del sistema (el grupo): no pertenece a una
+-- empresa cliente y puede cambiar de empresa desde la aplicación para gestionarlas y probarlas.
 
 use db_sistema_tickets_ti;
 
@@ -24,6 +26,7 @@ create table usuarios (
     email      varchar(160) not null unique,
     password   varchar(255) not null,
     activo     tinyint(1) not null default 1,
+    es_superadmin tinyint(1) not null default 0,
     created_at timestamp not null default current_timestamp,
     index idx_usuarios_empresa_rol (empresa_id, rol_id, activo),
     foreign key (empresa_id) references empresas (id),

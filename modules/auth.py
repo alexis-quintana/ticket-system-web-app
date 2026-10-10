@@ -50,8 +50,21 @@ def inyectar_usuario():
     if "usuario_id" in session:
         nombre = session.get("nombre", "")
         ini = "".join(p[0] for p in nombre.split()[:2]).upper()
+        superadmin = bool(session.get("superadmin"))
+        empresas, empresa_nombre = [], ""
+        con = obtener_conexion()
+        try:
+            with con.cursor() as cur:
+                cur.execute("SELECT id, nombre FROM empresas WHERE activa=1 ORDER BY id")
+                empresas = cur.fetchall()
+        finally:
+            con.close()
+        empresa_nombre = next((e["nombre"] for e in empresas if e["id"] == session["empresa_id"]), "")
         return {"usuario_actual": {"usuario_id": session["usuario_id"],
                                    "empresa_id": session["empresa_id"],
+                                   "empresa_nombre": empresa_nombre,
+                                   "superadmin": superadmin,
+                                   "empresas": empresas if superadmin else [],
                                    "rol": session["rol"], "nombre": nombre,
                                    "iniciales": ini}}
     return {"usuario_actual": None}
@@ -74,7 +87,7 @@ def _autenticar(email, password):
     try:
         with con.cursor() as cur:
             cur.execute(
-                "SELECT u.id, u.empresa_id, u.password, u.activo, r.nombre AS rol, "
+                "SELECT u.id, u.empresa_id, u.password, u.activo, u.es_superadmin, r.nombre AS rol, "
                 "CONCAT(p.nombres, ' ', p.apellidos) AS nombre "
                 "FROM usuarios u JOIN roles r ON r.id = u.rol_id "
                 "JOIN personas p ON p.id = u.persona_id WHERE u.email=%s",
@@ -95,6 +108,7 @@ def _iniciar_sesion(u):
     session["empresa_id"] = u["empresa_id"]
     session["rol"] = u["rol"]
     session["nombre"] = u["nombre"]
+    session["superadmin"] = bool(u["es_superadmin"])   # administrador general del sistema (el grupo)
 
 
 # ---------- Login / logout ----------
@@ -129,6 +143,30 @@ def logout():
     session.clear()   # borra los datos de la sesión
     flash("Sesión cerrada correctamente.", "success")
     return redirect(url_for("auth.login"))
+
+
+# ---------- Administrador general: cambiar la empresa con la que se trabaja ----------
+# Todas las consultas del sistema filtran por session["empresa_id"], así que basta con cambiarlo.
+@bp.route("/cambiar_empresa", methods=["POST"])
+@roles_required("Administrador")
+def cambiar_empresa():
+    if not session.get("superadmin"):
+        flash("No tienes permiso para cambiar de empresa.", "danger")
+        return redirect("/inicio")
+    empresa_id = request.form.get("empresa_id", "")
+    con = obtener_conexion()
+    try:
+        with con.cursor() as cur:
+            cur.execute("SELECT id, nombre FROM empresas WHERE id=%s AND activa=1", (empresa_id,))
+            empresa = cur.fetchone()
+    finally:
+        con.close()
+    if not empresa:
+        flash("La empresa seleccionada no existe.", "danger")
+    else:
+        session["empresa_id"] = empresa["id"]
+        flash("Ahora trabajas con " + empresa["nombre"] + ".", "success")
+    return redirect("/inicio")
 
 
 @bp.route("/recuperar")
