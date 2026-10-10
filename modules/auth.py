@@ -1,4 +1,5 @@
 import os, re
+import bcrypt
 from functools import wraps
 from flask import (Blueprint, render_template, request, redirect, url_for,
                    flash, jsonify, session)
@@ -56,6 +57,18 @@ def inyectar_usuario():
     return {"usuario_actual": None}
 
 
+# ---------- Contraseñas con bcrypt (la base guarda solo el hash, nunca el texto) ----------
+def _hashear(password):
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+def _password_correcta(password, hash_guardado):
+    try:
+        return bcrypt.checkpw(password.encode("utf-8"), hash_guardado.encode("utf-8"))
+    except ValueError:      # el valor guardado no es un hash bcrypt válido
+        return False
+
+
 def _autenticar(email, password):
     con = obtener_conexion()
     try:
@@ -69,7 +82,7 @@ def _autenticar(email, password):
             u = cur.fetchone()
     finally:
         con.close()
-    if not u or password != u["password"]:
+    if not u or not _password_correcta(password, u["password"]):
         return None, "Correo o contraseña incorrectos."
     if not u["activo"]:
         return None, "Tu cuenta está inactiva. Contacta al administrador."
@@ -228,7 +241,7 @@ def procesar_usuario():
                             "WHERE id=%s AND empresa_id=%s", (email, activo, rol, uid, emp))
                 if password:
                     cur.execute("UPDATE usuarios SET password=%s WHERE id=%s AND empresa_id=%s",
-                                (password, uid, emp))
+                                (_hashear(password), uid, emp))
                 mensaje = "Cambios guardados correctamente."
             else:
                 cur.execute("INSERT INTO personas (empresa_id, area_id, nombres, apellidos, dni, telefono) "
@@ -236,7 +249,7 @@ def procesar_usuario():
                 persona_id = cur.lastrowid
                 cur.execute("INSERT INTO usuarios (empresa_id, persona_id, rol_id, email, password, activo) "
                             "VALUES (%s,%s,(SELECT id FROM roles WHERE nombre=%s),%s,%s,%s)",
-                            (emp, persona_id, rol, email, password, activo))
+                            (emp, persona_id, rol, email, _hashear(password), activo))
                 mensaje = "Usuario registrado correctamente."
         con.commit()
         return jsonify(ok=True, mensaje=mensaje)

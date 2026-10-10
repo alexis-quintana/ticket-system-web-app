@@ -1,45 +1,39 @@
-CREATE TABLE IF NOT EXISTS `empresas` (
-    `id`     INT AUTO_INCREMENT PRIMARY KEY,
-    `nombre` VARCHAR(120) NOT NULL UNIQUE,
-    `ruc`    CHAR(11) NULL UNIQUE,
-    `sector` VARCHAR(60) NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- catálogos base: empresas, áreas, categorías y roles.
+-- una empresa representa a cada cliente; todo lo demás cuelga de ella (multiempresa).
 
-CREATE TABLE IF NOT EXISTS `areas` (
-    `id`         INT AUTO_INCREMENT PRIMARY KEY,
-    `empresa_id` INT NOT NULL,
-    `nombre`     VARCHAR(60) NOT NULL,
-    UNIQUE KEY `uq_area_empresa` (`empresa_id`, `nombre`),
-    FOREIGN KEY (`empresa_id`) REFERENCES `empresas` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+use db_sistema_tickets_ti;
 
-CREATE TABLE IF NOT EXISTS `categorias` (
-    `id`         INT AUTO_INCREMENT PRIMARY KEY,
-    `empresa_id` INT NOT NULL,
-    `nombre`     VARCHAR(60) NOT NULL,
-    UNIQUE KEY `uq_categoria_empresa` (`empresa_id`, `nombre`),
-    FOREIGN KEY (`empresa_id`) REFERENCES `empresas` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+create table empresas (
+    id                     int auto_increment primary key,
+    nombre                 varchar(120) not null unique,
+    ruc                    char(11) null unique,
+    sector                 varchar(60) null,
+    num_trabajadores       int null,
+    contacto_nombre        varchar(120) null,
+    contacto_cargo         varchar(60) null,
+    contacto_email         varchar(160) null,
+    integrante_responsable varchar(120) null,
+    activa                 tinyint(1) not null default 1,
+    created_at             timestamp not null default current_timestamp
+) engine=innodb default charset=utf8mb4 collate=utf8mb4_general_ci;
 
-INSERT IGNORE INTO `empresas` (`nombre`, `sector`) VALUES
-    ('Clínica (demo)', 'Salud privada'),
-    ('Azucarera (demo)', 'Agroindustria'),
-    ('Transporte provincial (demo)', 'Transporte');
+create table areas (
+    id         int auto_increment primary key,
+    empresa_id int not null,
+    nombre     varchar(60) not null,
+    unique key uq_area_empresa (empresa_id, nombre),
+    foreign key (empresa_id) references empresas (id)
+) engine=innodb default charset=utf8mb4 collate=utf8mb4_general_ci;
 
-INSERT IGNORE INTO `categorias` (`empresa_id`, `nombre`)
-SELECT e.`id`, c.`nombre`
-FROM `empresas` e
-CROSS JOIN (
-    SELECT 'Red y conexión' AS `nombre`
-    UNION ALL SELECT 'Software'
-    UNION ALL SELECT 'Hardware'
-    UNION ALL SELECT 'Accesos y cuentas'
-) c;
+create table categorias (
+    id         int auto_increment primary key,
+    empresa_id int not null,
+    nombre     varchar(60) not null,
+    unique key uq_categoria_empresa (empresa_id, nombre),
+    foreign key (empresa_id) references empresas (id)
+) engine=innodb default charset=utf8mb4 collate=utf8mb4_general_ci;
 
-INSERT IGNORE INTO `areas` (`empresa_id`, `nombre`)
-SELECT e.`id`, a.`nombre`
-FROM `empresas` e
-CROSS JOIN (
-    SELECT 'Administración' AS `nombre`
-    UNION ALL SELECT 'Operaciones'
-) a;
+create table roles (
+    id     int auto_increment primary key,
+    nombre varchar(30) not null unique
+) engine=innodb default charset=utf8mb4 collate=utf8mb4_general_ci;
