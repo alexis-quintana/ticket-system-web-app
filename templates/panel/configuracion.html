@@ -1,0 +1,36 @@
+{% extends "base_app.html" %}
+{% block titulo %}Configuración{% endblock %}
+
+{% block contenido %}
+<section id="page-content" tabindex="-1" class="tickets-page settings-page" aria-labelledby="page-title">
+  <h1 id="page-title" tabindex="-1">Configuración</h1>
+  <p class="page-description">Ajustes de visualización y reglas de atención del sistema.</p>
+
+  <form class="settings-card" id="preferences-form">
+    <h2>Preferencias de visualización</h2>
+    <p class="settings-help">Se guardan solo en este navegador y se aplican en todas las pantallas.</p>
+    <label class="settings-check"><input type="checkbox" name="large-text"> Texto más grande en tablas y
+      formularios</label>
+    <label class="settings-check"><input type="checkbox" name="reduce-motion"> Reducir animaciones</label>
+    <p id="preferences-feedback" role="status"></p>
+  </form>
+
+  <div class="settings-card">
+    <h2>Plazos de atención (SLA)</h2>
+    <p class="settings-help">Tiempo máximo para resolver un ticket según su prioridad, contado desde su registro.
+      El semáforo pasa a amarillo cuando queda el 25% del plazo o menos, y a rojo cuando vence.</p>
+    <div class="settings-columns">
+      {% for prioridad, horas in sla_horas.items() %}
+      <label>Prioridad {{ prioridad }}<input value="{{ horas }} horas" readonly></label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="settings-card">
+    <h2>Notificaciones</h2>
+    <p class="settings-help">La campana de la barra superior muestra tus avisos sin leer y se actualiza cada 30
+      segundos.</p>
+    <div><a class="secondary-button" href="{{ url_for('notificaciones.lista') }}">Ver mis notificaciones</a></div>
+  </div>
+</section>
+{% endblock %}

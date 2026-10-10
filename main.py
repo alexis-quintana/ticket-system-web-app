@@ -30,6 +30,10 @@ app.register_blueprint(sla_bp)
 from modules.notificaciones import bp as notificaciones_bp
 app.register_blueprint(notificaciones_bp)
 
+# Páginas generales: Inicio, Dashboard, Perfil y Configuración (integración)
+from modules.panel import bp as panel_bp
+app.register_blueprint(panel_bp)
+
 
 # ---------------------------------------------------------------------------
 # Formato único del código de ticket en todas las plantillas: {{ t.id|codigo_ticket }} -> TK-0007

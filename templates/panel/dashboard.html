@@ -1,0 +1,67 @@
+{% extends "base_app.html" %}
+{% block titulo %}Dashboard{% endblock %}
+
+{# Gráfico de barras HTML (sin librerías). filas = [(etiqueta, cantidad, porcentaje)].
+   filtro: parámetro del listado de tickets para que cada barra enlace a sus tickets. #}
+{% macro barras(titulo, filas, unidad, filtro=None, colores={}) %}
+<div class="chart-card">
+  <h2>{{ titulo }}</h2>
+  <ul class="bar-chart">
+    {% for etiqueta, cantidad, pct in filas %}
+    <li>
+      {% if filtro %}<a class="chart-link" href="{{ url_for('tickets.listar', **{filtro: etiqueta}) }}">{% endif %}
+      <div><span>{{ etiqueta }}</span><strong>{{ cantidad }} <small>({{ pct }}% de {{ unidad }})</small></strong></div>
+      <div class="chart-track" role="img" aria-label="{{ etiqueta }}: {{ cantidad }}, {{ pct }}%">
+        <span class="chart-fill {{ 'tone-' ~ (loop.index0 % 4) if not colores }}"
+          style="width: {{ pct }}%{% if colores %}; background: {{ colores[etiqueta] }}{% endif %}"></span>
+      </div>
+      {% if filtro %}</a>{% endif %}
+    </li>
+    {% else %}
+    <li class="dash-caption">Sin datos todavía.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endmacro %}
+
+{% block contenido %}
+<section id="page-content" tabindex="-1" class="tickets-page" aria-labelledby="page-title">
+  <h1 id="page-title" tabindex="-1">Dashboard</h1>
+  <p class="page-description">
+    {% if usuario_actual.rol == 'Solicitante' %}Resumen de tus tickets.{% else %}Resumen de los tickets de tu
+    empresa.{% endif %} El semáforo SLA solo cuenta los tickets abiertos o en proceso.
+  </p>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <h2>Total de tickets</h2><strong>{{ total }}</strong>
+      <p>Registrados hasta hoy</p>
+      <a class="metric-link" href="{{ url_for('tickets.listar') }}">Ver listado</a>
+    </div>
+    <div class="metric-card">
+      <h2>Activos</h2><strong>{{ activos }}</strong>
+      <p>Abiertos o en proceso</p>
+    </div>
+    <div class="metric-card">
+      <h2>Por vencer</h2><strong>{{ por_vencer }}</strong>
+      <p>Queda 25% del plazo o menos</p>
+    </div>
+    <div class="metric-card">
+      <h2>Vencidos</h2><strong>{{ vencidos }}</strong>
+      <p>Superaron su plazo de atención</p>
+    </div>
+  </div>
+
+  {% if total %}
+  <div class="charts-grid">
+    {{ barras('Tickets por estado', estados, 'todos', 'estado') }}
+    {{ barras('Semáforo SLA (activos)', sla, 'activos', colores={'En plazo': 'var(--color-success)',
+    'Por vencer': 'var(--color-warning)', 'Vencido': 'var(--color-danger)'}) }}
+    {{ barras('Tickets por prioridad', prioridades, 'todos', 'prioridad') }}
+    {{ barras('Tickets por categoría', categorias, 'todos') }}
+  </div>
+  {% else %}
+  <p class="dash-empty">Aún no hay tickets para mostrar. Los gráficos aparecerán cuando se registre el primero.</p>
+  {% endif %}
+</section>
+{% endblock %}
