@@ -7,6 +7,19 @@
     class="bi bi-{{ icono }} icon" aria-hidden="true"></i><span>{{ texto }}</span></a>
 {%- endmacro %}
 
+{# Migas de pan (estilos en polish.css .breadcrumbs). Uso:
+   {% from "_navegacion.html" import migas with context %}
+   {{ migas([('Inicio', url_for('panel.inicio')), ('Tickets', none)]) }}  -> el último va sin enlace #}
+{% macro migas(items) -%}
+<nav class="breadcrumbs" aria-label="Ruta de navegación">
+  <ol>
+    {% for texto, href in items %}
+    <li>{% if href %}<a href="{{ href }}">{{ texto }}</a>{% else %}<span aria-current="page">{{ texto }}</span>{% endif %}</li>
+    {% endfor %}
+  </ol>
+</nav>
+{%- endmacro %}
+
 {% macro sidebar() %}
 {% set ruta = request.path %}
 {% set rol = usuario_actual.rol if usuario_actual else '' %}
