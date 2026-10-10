@@ -66,7 +66,7 @@ document.querySelectorAll('.btn-estado').forEach(b => b.addEventListener('click'
     formEstado.reset();
     [estadoNuevo, estadoComentario].forEach(clearField);
     $('estado-mensaje').innerHTML = '';
-    $('estado-ticket').textContent = `LF-${String(b.dataset.id).padStart(4, '0')} · ${b.dataset.asunto}`;
+    $('estado-ticket').textContent = `TK-${String(b.dataset.id).padStart(4, '0')} · ${b.dataset.asunto}`;
     const actual = $('estado-actual');
     actual.textContent = b.dataset.estado; actual.dataset.state = b.dataset.estado;
     estadoNuevo.innerHTML = '<option value="">— Selecciona —</option>' +
@@ -100,7 +100,7 @@ if (formAsignar) {
         formAsignar.reset();
         clearField(tecnico);
         $('asignar-mensaje').innerHTML = '';
-        $('asignar-ticket').textContent = `LF-${String(b.dataset.id).padStart(4, '0')} · ${b.dataset.asunto}`;
+        $('asignar-ticket').textContent = `TK-${String(b.dataset.id).padStart(4, '0')} · ${b.dataset.asunto}`;
         tecnico.value = b.dataset.tecnico || '';
     }));
     formAsignar.addEventListener('submit', e => {

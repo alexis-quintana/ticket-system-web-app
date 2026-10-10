@@ -1,5 +1,5 @@
 {% extends "auth/_layout.html" %}
-{% block title %}Historial LF-{{ '%04d'|format(t.id) }}{% endblock %}
+{% block title %}Historial {{ t.id|codigo_ticket }}{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/validacion.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ticket-detail.css') }}">
@@ -8,6 +8,8 @@
 {% block content %}
 {% if usuario_actual.rol != 'Solicitante' %}
 <a class="detail-back" href="{{ url_for('historial.asignaciones') }}">← Volver a asignaciones</a>
+{% else %}
+<a class="detail-back" href="{{ url_for('tickets.listar') }}">← Volver a tickets</a>
 {% endif %}
 
 <div class="detail-grid">
@@ -15,7 +17,7 @@
     <article class="detail-card">
       <div class="detail-heading">
         <div>
-          <p class="detail-muted mb-1">LF-{{ '%04d'|format(t.id) }}</p>
+          <p class="detail-muted mb-1">{{ t.id|codigo_ticket }}</p>
           <h2 id="page-title">{{ t.asunto }}</h2>
         </div>
         <span class="state-badge" data-state="{{ t.estado }}">{{ t.estado }}</span>

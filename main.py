@@ -32,6 +32,15 @@ app.register_blueprint(notificaciones_bp)
 
 
 # ---------------------------------------------------------------------------
+# Formato único del código de ticket en todas las plantillas: {{ t.id|codigo_ticket }} -> TK-0007
+# (en JS se arma igual: 'TK-' + id con 4 dígitos)
+# ---------------------------------------------------------------------------
+@app.template_filter("codigo_ticket")
+def codigo_ticket(ticket_id):
+    return "TK-" + str(ticket_id).zfill(4)
+
+
+# ---------------------------------------------------------------------------
 # Rutas generales
 # ---------------------------------------------------------------------------
 @app.route("/")
