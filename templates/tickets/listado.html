@@ -9,6 +9,7 @@
       <h1 id="page-title" tabindex="-1">Tickets</h1>
       <p class="page-description">Solicitudes de soporte registradas.</p>
     </div>
+    <a class="button" href="{{ url_for('tickets.nuevo') }}">+ Crear ticket</a>
   </div>
 
   <div class="table-card">
@@ -22,6 +23,7 @@
             <th scope="col">Prioridad</th>
             <th scope="col">Estado</th>
             <th scope="col">Registrado</th>
+            <th scope="col">Evidencia</th>
           </tr>
         </thead>
         <tbody>
@@ -32,6 +34,14 @@
             <td><span class="priority{{ ' priority-high' if t.prioridad == 'Alta' }}">{{ t.prioridad }}</span></td>
             <td><span class="ticket-status">{{ t.estado }}</span></td>
             <td>{{ t.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+            <td>
+              {% if t.evidencia_id %}
+              <div class="evidence-thumb" title="{{ t.total_evidencias }} foto(s)">
+                <img src="{{ url_for('tickets.evidencia', evidencia_id=t.evidencia_id) }}"
+                  alt="Evidencia de TK-{{ '%04d'|format(t.id) }}">
+              </div>
+              {% else %}<span class="no-evidence">—</span>{% endif %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>
