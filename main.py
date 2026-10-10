@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, redirect, session, url_for
 
 from db import obtener_conexion
 
@@ -30,13 +30,29 @@ app.register_blueprint(sla_bp)
 from modules.notificaciones import bp as notificaciones_bp
 app.register_blueprint(notificaciones_bp)
 
+# Páginas generales: Inicio, Dashboard, Perfil y Configuración (integración)
+from modules.panel import bp as panel_bp
+app.register_blueprint(panel_bp)
+
+
+# ---------------------------------------------------------------------------
+# Formato único del código de ticket en todas las plantillas: {{ t.id|codigo_ticket }} -> TK-0007
+# (en JS se arma igual: 'TK-' + id con 4 dígitos)
+# ---------------------------------------------------------------------------
+@app.template_filter("codigo_ticket")
+def codigo_ticket(ticket_id):
+    return "TK-" + str(ticket_id).zfill(4)
+
 
 # ---------------------------------------------------------------------------
 # Rutas generales
 # ---------------------------------------------------------------------------
 @app.route("/")
 def inicio():
-    return "<p>Sistema de Tickets TI en marcha</p>"
+    # Sin sesión va al login; con sesión, a la página de inicio del sistema
+    if "usuario_id" not in session:
+        return redirect(url_for("auth.login"))
+    return redirect("/inicio")
 
 
 @app.route("/probandoconexion")

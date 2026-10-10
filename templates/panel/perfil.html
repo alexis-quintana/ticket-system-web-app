@@ -1,0 +1,34 @@
+{% extends "base_app.html" %}
+{% block titulo %}Mi perfil{% endblock %}
+
+{% block contenido %}
+<section id="page-content" tabindex="-1" class="tickets-page settings-page" aria-labelledby="page-title">
+  <h1 id="page-title" tabindex="-1">Mi perfil</h1>
+  <p class="page-description">Datos de tu cuenta en {{ datos.empresa or 'tu empresa' }}.</p>
+
+  <div class="settings-card">
+    <h2>Datos personales</h2>
+    <div class="settings-columns">
+      <label>Nombres<input value="{{ datos.nombres or '' }}" readonly></label>
+      <label>Apellidos<input value="{{ datos.apellidos or '' }}" readonly></label>
+      <label>DNI<input value="{{ datos.dni or '—' }}" readonly></label>
+      <label>Teléfono<input value="{{ datos.telefono or '—' }}" readonly></label>
+    </div>
+  </div>
+
+  <div class="settings-card">
+    <h2>Cuenta</h2>
+    <div class="settings-columns">
+      <label>Correo electrónico<input value="{{ datos.email or '' }}" readonly></label>
+      <label>Rol<input value="{{ usuario_actual.rol }}" readonly></label>
+      <label>Área<input value="{{ datos.area or 'Sin área' }}" readonly></label>
+      <label>Empresa<input value="{{ datos.empresa or '' }}" readonly></label>
+    </div>
+    <p class="settings-help">
+      {% if usuario_actual.rol == 'Administrador' %}Puedes editar estos datos desde
+      <a href="{{ url_for('auth.usuarios') }}">Usuarios</a>.
+      {% else %}Si algún dato es incorrecto o necesitas cambiar tu contraseña, contacta al administrador.{% endif %}
+    </p>
+  </div>
+</section>
+{% endblock %}

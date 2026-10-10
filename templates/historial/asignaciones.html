@@ -54,7 +54,7 @@
       <tbody>
         {% for t in tickets %}
         <tr>
-          <th scope="row"><span>LF-{{ '%04d'|format(t.id) }}</span><span class="detail-muted hist-asunto">{{ t.asunto }}</span></th>
+          <th scope="row"><span>{{ t.id|codigo_ticket }}</span><span class="detail-muted hist-asunto">{{ t.asunto }}</span></th>
           <td><span class="priority-badge" data-priority="{{ t.prioridad }}">{{ t.prioridad }}</span></td>
           <td class="hist-responsable">{{ t.tecnico or 'Sin asignar' }}</td>
           <td><span class="state-badge" data-state="{{ t.estado }}">{{ t.estado }}</span></td>

@@ -8,7 +8,8 @@ bp = Blueprint("auth", __name__)
 ROLES = ("Administrador", "Técnico", "Solicitante")
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 # Destino tras login según rol (cambiar cuando existan los módulos de los demás)
-DESTINO = {"Administrador": "/usuarios", "Técnico": "/", "Solicitante": "/"}
+# INTEGRACIÓN: todos los roles entran por /inicio (antes: Administrador -> /usuarios, resto -> /)
+DESTINO = {"Administrador": "/inicio", "Técnico": "/inicio", "Solicitante": "/inicio"}
 
 
 # ---------- Configuración (se ejecuta sola al registrar el blueprint) ----------

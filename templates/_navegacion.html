@@ -1,0 +1,73 @@
+{# Navegación compartida por base_app.html y auth/_layout.html:
+     {% from "_navegacion.html" import sidebar, topbar with context %}
+   La opción activa se calcula con request.path. Requiere static/js/shell.js y notificaciones.js. #}
+
+{% macro opcion(href, texto, activa) -%}
+<a class="nav-item{% if activa %} is-active{% endif %}" href="{{ href }}" {% if activa %}aria-current="page" {% endif %}><svg
+    class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">{{ caller() }}</svg><span>{{ texto }}</span></a>
+{%- endmacro %}
+
+{% macro sidebar() %}
+{% set ruta = request.path %}
+{% set rol = usuario_actual.rol if usuario_actual else '' %}
+<aside class="sidebar" id="sidebar" aria-label="Navegación principal">
+  <a class="sidebar-brand" href="/" aria-label="Sistema de Tickets TI, inicio"><img
+      src="{{ url_for('static', filename='img/lexfixer-brand.png') }}" alt="Sistema de Tickets TI"></a>
+  <nav>
+    {% call opcion('/inicio', 'Inicio', ruta == '/inicio') %}<path d="m3 10 9-8 9 8v11H3zM9 21V12h6v9" />{% endcall %}
+    {% call opcion('/dashboard', 'Dashboard', ruta.startswith('/dashboard')) %}<path d="m12 2 10 6-10 6L2 8zM2 12l10 6 10-6M2 16l10 6 10-6" />{% endcall %}
+    {% call opcion('/tickets', 'Tickets', ruta.startswith('/tickets')) %}<rect x="4" y="4" width="16" height="18" rx="2" />
+      <rect x="9" y="2" width="6" height="4" rx="1" />{% endcall %}
+    {% if rol in ('Administrador', 'Técnico') %}
+    {% call opcion('/asignaciones', 'Asignaciones', ruta.startswith('/asignaciones')) %}<circle cx="9" cy="7" r="4" />
+      <path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2M16 11l2 2 4-4" />{% endcall %}
+    {% endif %}
+    {% if rol == 'Administrador' %}
+    {% call opcion('/usuarios', 'Usuarios', ruta.startswith('/usuarios')) %}<circle cx="9" cy="7" r="4" />
+      <path d="M2 22v-3a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v3M17 3a4 4 0 0 1 0 8M22 22v-3a5 5 0 0 0-4-5" />{% endcall %}
+    {% call opcion('/reportes', 'Reportes', ruta.startswith('/reportes')) %}<path d="m2 19 7-8 5 4 8-11M15 4h7v7" />{% endcall %}
+    {% endif %}
+    {% call opcion('/configuracion', 'Configuración', ruta.startswith('/configuracion')) %}<circle cx="12" cy="12" r="3" />
+      <path d="m9 2-1 4-4-1-2 4 3 3-3 3 2 4 4-1 1 4h6l1-4 4 1 2-4-3-3 3-3-2-4-4 1-1-4z" />{% endcall %}
+  </nav>
+  <div class="sidebar-footer"><strong>{{ rol }}</strong>
+    <form method="post" action="{{ url_for('auth.logout') }}"><button class="logout" type="submit">Cerrar
+        sesión</button></form>
+  </div>
+</aside>
+{% endmacro %}
+
+{% macro topbar() %}
+<header class="topbar">
+  <button class="icon-button menu-button" type="button" data-action="menu" aria-label="Abrir menú"
+    aria-controls="sidebar" aria-expanded="false"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"
+      focusable="false">
+      <path d="M3 6h18M3 12h18M3 18h18" />
+    </svg></button>
+  <form id="global-search" class="global-search" role="search" action="/tickets" method="get">
+    <label class="sr-only" for="global-query">Buscar tickets</label>
+    <input id="global-query" name="q" placeholder="Buscar tickets . . ." autocomplete="off"
+      value="{{ request.args.get('q', '') if request.path.startswith('/tickets') }}">
+    <button aria-label="Buscar"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="10" cy="10" r="7" />
+        <path d="m15 15 6 6" />
+      </svg></button>
+  </form>
+  <div class="profile">
+    <a class="icon-button notification-bell" href="/notificaciones" aria-label="Notificaciones"><svg class="icon"
+        viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M10 21h4" />
+      </svg><span class="notification-count" id="contador-notificaciones" hidden>0</span></a>
+    <div class="profile-dropdown">
+      <button type="button" id="profile-toggle" aria-expanded="false" aria-controls="profile-menu"
+        aria-label="Abrir opciones de mi cuenta"><span class="avatar" aria-hidden="true">{{
+          usuario_actual.iniciales }}</span><strong>{{ usuario_actual.nombre }}</strong><span
+          aria-hidden="true">⌄</span></button>
+      <div id="profile-menu" hidden><a href="/perfil">Mi perfil</a><a href="/configuracion">Configuración</a>
+        <form method="post" action="{{ url_for('auth.logout') }}"><button type="submit">Cerrar sesión</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</header>
+{% endmacro %}

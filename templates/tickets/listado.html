@@ -12,6 +12,23 @@
     <a class="button" href="{{ url_for('tickets.nuevo') }}">+ Crear ticket</a>
   </div>
 
+  <form class="ticket-filters" method="get" action="{{ url_for('tickets.listar') }}" role="search"
+    aria-label="Filtrar tickets">
+    <label class="sr-only" for="f-q">Buscar por asunto o código</label>
+    <input id="f-q" name="q" value="{{ f.q }}" placeholder="Buscar por asunto o código (TK-0001)" autocomplete="off">
+    <label class="sr-only" for="f-estado">Estado</label>
+    <select id="f-estado" name="estado">
+      <option value="">Todos los estados</option>
+      {% for e in estados %}<option {{ 'selected' if f.estado == e }}>{{ e }}</option>{% endfor %}
+    </select>
+    <label class="sr-only" for="f-prioridad">Prioridad</label>
+    <select id="f-prioridad" name="prioridad">
+      <option value="">Todas las prioridades</option>
+      {% for p in prioridades %}<option {{ 'selected' if f.prioridad == p }}>{{ p }}</option>{% endfor %}
+    </select>
+    <button class="new-ticket">Filtrar</button>
+  </form>
+
   <div class="table-card">
     {% if tickets %}
     <div class="table-scroll">
@@ -22,32 +39,43 @@
             <th scope="col">Categoría</th>
             <th scope="col">Prioridad</th>
             <th scope="col">Estado</th>
+            <th scope="col">SLA</th>
             <th scope="col">Registrado</th>
             <th scope="col">Evidencia</th>
+            <th scope="col"><span class="sr-only">Acciones</span></th>
           </tr>
         </thead>
         <tbody>
           {% for t in tickets %}
           <tr>
-            <th scope="row"><span><small>TK-{{ '%04d'|format(t.id) }}</small></span><span>{{ t.asunto }}</span></th>
+            <th scope="row"><span><small>{{ t.id|codigo_ticket }}</small></span><span>{{ t.asunto }}</span></th>
             <td>{{ t.categoria }}</td>
             <td><span class="priority{{ ' priority-high' if t.prioridad == 'Alta' }}">{{ t.prioridad }}</span></td>
             <td><span class="ticket-status">{{ t.estado }}</span></td>
+            <td><span class="sla sla-{{ t.sla.clase }}"><strong>{{ t.sla.estado }}</strong>{{ t.sla.detalle }}</span></td>
             <td>{{ t.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
             <td>
               {% if t.evidencia_id %}
               <div class="evidence-thumb" title="{{ t.total_evidencias }} foto(s)">
                 <img src="{{ url_for('tickets.evidencia', evidencia_id=t.evidencia_id) }}"
-                  alt="Evidencia de TK-{{ '%04d'|format(t.id) }}">
+                  alt="Evidencia de {{ t.id|codigo_ticket }}">
               </div>
               {% else %}<span class="no-evidence">—</span>{% endif %}
             </td>
+            <td><a class="row-action" href="{{ url_for('tickets.detalle', ticket_id=t.id) }}">Ver detalle<span
+                  class="sr-only"> de {{ t.id|codigo_ticket }}</span></a></td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
     <p class="table-count">{{ tickets|length }} ticket(s)</p>
+    {% elif f.q or f.estado or f.prioridad %}
+    <div class="empty-state">
+      <h2>Sin resultados para estos filtros</h2>
+      <p class="page-description">Prueba con otra búsqueda o <a href="{{ url_for('tickets.listar') }}">limpia los
+          filtros</a>.</p>
+    </div>
     {% else %}
     <div class="empty-state">
       <h2>Aún no tienes tickets</h2>
@@ -55,5 +83,13 @@
     </div>
     {% endif %}
   </div>
+
+  <div class="sla-legend" aria-label="Leyenda del semáforo SLA">
+    <span class="sla-chip sla-green">En plazo</span>
+    <span class="sla-chip sla-yellow">Por vencer (queda 25% o menos)</span>
+    <span class="sla-chip sla-red">Vencido</span>
+  </div>
+  <p class="sla-help">Plazos de atención desde el registro:
+    {% for p, h in sla_horas.items() %}{{ p }} {{ h }} h{{ ' · ' if not loop.last }}{% endfor %}.</p>
 </section>
 {% endblock %}
