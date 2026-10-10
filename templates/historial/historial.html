@@ -34,7 +34,7 @@
       <h3>Descripción</h3>
       <p class="ticket-description">{{ t.descripcion }}</p>
     </article>
-
+     {% include "tickets/_evidencias.html" %}
     <section class="detail-card" aria-labelledby="hist-titulo">
       <h2 id="hist-titulo">Historial del ticket</h2>
       {% include "historial/_timeline.html" %}
@@ -51,6 +51,7 @@
         {{ 'Reasignar técnico' if t.tecnico else 'Asignar técnico' }}</button>
       {% endif %}
     </section>
+    
     <section class="detail-card">
       <h2>Estado</h2>
       <p>Actual: <span class="state-badge" data-state="{{ t.estado }}">{{ t.estado }}</span></p>

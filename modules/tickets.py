@@ -28,6 +28,22 @@ def _configurar(state):
 def _carpeta_uploads():
     return os.path.join(current_app.root_path, "uploads")
 
+def _evidencias(cur, ticket_id, emp):
+    cur.execute("SELECT id, nombre_original FROM ticket_evidencias "
+                "WHERE ticket_id=%s AND empresa_id=%s ORDER BY id", (ticket_id, emp))
+    return cur.fetchall()
+
+
+@bp.app_template_global()
+def evidencias_de(ticket_id):
+    """Fotos de un ticket para cualquier plantilla. La usa tickets/_evidencias.html,
+    que el detalle (historial.html, Módulo 3) incluye con una sola línea."""
+    con = obtener_conexion()
+    try:
+        with con.cursor() as cur:
+            return _evidencias(cur, ticket_id, session["empresa_id"])
+    finally:
+        con.close()
 
 def _leer_foto(f):
     """Devuelve (datos, mime, extension) o un mensaje de error."""
