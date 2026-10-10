@@ -1,5 +1,31 @@
-// Comportamiento común del menú lateral y del menú de cuenta.
+// Comportamiento común del menú lateral, del menú de cuenta y de las preferencias de visualización.
+
+// Preferencias (Configuración): clases en <body> definidas en settings.css. Solo viven en este navegador.
+const PREFERENCIAS = ['large-text', 'reduce-motion'];
+const leerPreferencia = nombre => {
+  try { return localStorage.getItem('pref-' + nombre) === '1'; } catch (e) { return false; }
+};
+const guardarPreferencia = (nombre, activa) => {
+  try { localStorage.setItem('pref-' + nombre, activa ? '1' : '0'); return true; } catch (e) { return false; }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
+  PREFERENCIAS.forEach(p => document.body.classList.toggle(p, leerPreferencia(p)));
+
+  const formPreferencias = document.querySelector('#preferences-form');
+  if (formPreferencias) {
+    const aviso = document.querySelector('#preferences-feedback');
+    PREFERENCIAS.forEach(p => { formPreferencias.elements[p].checked = leerPreferencia(p); });
+    formPreferencias.addEventListener('submit', e => e.preventDefault());
+    formPreferencias.addEventListener('change', e => {
+      const nombre = e.target.name;
+      document.body.classList.toggle(nombre, e.target.checked);
+      aviso.textContent = guardarPreferencia(nombre, e.target.checked)
+        ? 'Preferencia guardada.'
+        : 'Se aplicó, pero este navegador no permite guardarla.';
+    });
+  }
+
   const sidebar = document.querySelector('#sidebar');
   const botonMenu = document.querySelector('[data-action="menu"]');
   if (sidebar && botonMenu) {
