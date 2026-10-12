@@ -1,7 +1,7 @@
 {# Bloque reutilizable: fotos de evidencia de un ticket con zoom.
 Uso en cualquier plantilla que tenga la variable `t` (el ticket):
 {% include "tickets/_evidencias.html" %}
-Necesita ticket-detail.css y tickets.css (los cargan las páginas de detalle e historial). #}
+Necesita tickets-detalle.css y tickets.css (los cargan las páginas de detalle e historial). #}
 {% set fotos = evidencias_de(t.id) %}
 <section class="detail-card" aria-labelledby="evidencias-titulo">
     <h2 id="evidencias-titulo">Evidencias ({{ fotos|length }})</h2>

@@ -1,6 +1,6 @@
 // Comportamiento común del menú lateral, del menú de cuenta y de las preferencias de visualización.
 
-// Preferencias (Configuración): clases en <body> definidas en settings.css. Solo viven en este navegador.
+// Preferencias (Configuración): clases en <body> definidas en configuracion.css. Solo viven en este navegador.
 const PREFERENCIAS = ['large-text', 'reduce-motion'];
 const leerPreferencia = nombre => {
   try { return localStorage.getItem('pref-' + nombre) === '1'; } catch (e) { return false; }

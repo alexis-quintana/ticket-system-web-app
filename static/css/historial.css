@@ -1,5 +1,5 @@
 /* Módulo 3 — Asignación, estados e historial.
-   Reutiliza global.css, components.css, tickets.css, ticket-detail.css y polish.css;
+   Reutiliza global.css, componentes.css, tickets.css, tickets-detalle.css y pulido.css;
    aquí solo va lo específico del módulo. */
 /* La celda se mantiene como celda de tabla; el flex va en el div interno.
    Los botones van siempre en una sola línea (igual que td.row-actions en Usuarios):
@@ -150,7 +150,7 @@ body:has(.app-shell) .hist-modal-quitar .secondary-button.hist-quitar {
 }
 
 /* Barra de filtros: igual que Tickets y Usuarios, ocupa todo el ancho y termina en el borde
-   de la tabla. shell.js (combobox del grupo) fija un min-width en px a cada select al cargar;
+   de la tabla. interfaz.js (combobox del grupo) fija un min-width en px a cada select al cargar;
    aquí se anula SOLO en este formulario para que cada select llene su columna. */
 .hist-filtros > [class*="col-md"] {
     min-width: 0;
