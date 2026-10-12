@@ -79,7 +79,7 @@ def _accion(funcion, *args):
     except HistorialError as e:
         return jsonify(ok=False, mensaje=str(e)), e.estado
     except Exception as e:
-        print(repr(e))
+        current_app.logger.exception("Error en el Módulo 3")
         return jsonify(ok=False, mensaje="Error en el servidor. Inténtalo de nuevo."), 500
     return jsonify(ok=True, mensaje=mensaje)
 

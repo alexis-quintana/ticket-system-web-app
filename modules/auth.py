@@ -1,5 +1,6 @@
 """Controlador de autenticación. El SQL y las reglas están en models/user.py."""
 import os
+import secrets
 from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, current_app
 from werkzeug.exceptions import BadRequest
@@ -48,7 +49,11 @@ def datos_peticion():
 
 @bp.record_once
 def _configurar(state):
-    state.app.secret_key = state.app.secret_key or os.environ.get("SECRET_KEY", "dev-clave-secreta")
+    clave = os.environ.get("SECRET_KEY")
+    if not clave:
+        # sin variable de entorno: clave fija solo en modo debug (para no perder la sesión al recargar); si no, una al azar
+        clave = "clave-solo-para-desarrollo" if state.app.debug else secrets.token_hex(32)
+    state.app.secret_key = state.app.secret_key or clave
 
 
 def _es_json():
