@@ -18,7 +18,7 @@
   </div>
 </div>
 
-<form method="get" data-auto-submit class="row g-2 align-items-end my-3">
+<form method="get" data-auto-submit class="row g-2 align-items-end">
   <div class="col-md-3"><label class="form-label small fw-semibold" for="f-q">Buscar</label>
     <input class="form-control" id="f-q" name="q" value="{{ f.q }}" placeholder="Asunto o N° de ticket">
   </div>
@@ -47,6 +47,7 @@
   </div>
 </form>
 
+<p class="table-count">{{ tickets|length }} ticket(s)</p>
 <div class="table-card">
   <div class="table-scroll">
     <table class="ticket-table">
@@ -102,7 +103,6 @@
       </tbody>
     </table>
   </div>
-  <p class="table-count">{{ tickets|length }} ticket(s)</p>
 </div>
 
 {% include "historial/_modales.html" %}
