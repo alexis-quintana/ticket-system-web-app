@@ -147,7 +147,7 @@ class Historial:
     @staticmethod
     def _completar(t, usuario):
         """Agrega al ticket el semáforo SLA y lo que el usuario puede hacer con él."""
-        s = calcular_sla(t["prioridad"], t["created_at"], t["estado"], t["resuelto_en"])
+        s = calcular_sla(t["prioridad"], t["created_at"], t["estado"], t["resuelto_en"], usuario["empresa_id"])
         t["sla"] = {"clase": SLA_CSS[s["color"]], "texto": s["texto"]}
         t["siguientes"] = Historial.siguientes(t, usuario)
         t["puede_estado"] = bool(t["tecnico_id"]) and bool(t["siguientes"])

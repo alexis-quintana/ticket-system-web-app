@@ -142,6 +142,12 @@ insert into usuarios (id, empresa_id, persona_id, rol_id, email, password, activ
   (30, 5, 30, 3, 'alonso.tapia@pomalca.test', @hash_demo, 1, 0),
   (31, 6, 31, 1, 'superadmin@sistema-tickets.test', @hash_demo, 1, 1);
 
+-- plazos sla de ejemplo (módulo 4): la empresa 2 ya tiene los tres; las demás usan los valores por defecto
+insert into sla_plazos (empresa_id, prioridad, horas_limite) values
+  (2, 'Alta', 4),
+  (2, 'Media', 24),
+  (2, 'Baja', 72);
+
 -- tickets (las áreas se toman del solicitante)
 insert into tickets (id, empresa_id, solicitante_id, categoria_id, area_id, tecnico_id, asunto, descripcion, prioridad, estado, resuelto_en, created_at) values
   (1, 1, 4, 1, 2, null, 'No imprime el módulo de boletos en terminal', 'No imprime el módulo de boletos en terminal. Reportado por el usuario; se requiere revisión del área de TI. (ticket de demostración)', 'Alta', 'Abierto', null, date_sub(now(), interval 60 minute)),

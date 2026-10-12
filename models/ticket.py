@@ -153,7 +153,7 @@ class Ticket:
     
     def calcular_sla(self):
         """Semáforo del Módulo 4 en el formato que usa el listado: clase CSS, estado y detalle."""
-        s = calcular_sla(self.prioridad, self.created_at, self.estado, self.resuelto_en)
+        s = calcular_sla(self.prioridad, self.created_at, self.estado, self.resuelto_en, self.empresa_id)
         estado, detalle = s["texto"].split(" · ")
         return {"clase": SLA_CSS[s["color"]], "estado": estado, "detalle": detalle}
 

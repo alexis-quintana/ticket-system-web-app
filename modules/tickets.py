@@ -3,7 +3,7 @@ from flask import (Blueprint, render_template, request, jsonify, session, send_f
                    abort, redirect, url_for, flash)
 from werkzeug.exceptions import BadRequest
 from modules.auth import roles_required
-from modules.sla import SLA_HORAS
+from modules.sla import plazos_empresa
 from models.ticket import Ticket, Evidencia, TicketError, PRIORIDADES, ESTADOS
 
 # Sin url_prefix: cada ruta escribe /tickets/... completo, igual que historial.py,
@@ -64,7 +64,7 @@ def listar():
     vencidos = sum(1 for t in activos if t.sla["clase"] == "red")
     por_vencer = sum(1 for t in activos if t.sla["clase"] == "yellow")
     return render_template("tickets/listado.html", tickets=lista, estados=ESTADOS, prioridades=PRIORIDADES,
-                           f={"q": q, "estado": estado, "prioridad": prioridad}, sla_horas=SLA_HORAS,
+                           f={"q": q, "estado": estado, "prioridad": prioridad}, sla_horas=plazos_empresa(session["empresa_id"]),
                            vencidos=vencidos, por_vencer=por_vencer)
 
 

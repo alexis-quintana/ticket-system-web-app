@@ -1,0 +1,82 @@
+{% extends "base_app.html" %}
+{% from "_navegacion.html" import migas with context %}
+{% block titulo %}Plazos SLA{% endblock %}
+{% block css_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sla.css') }}">
+{% endblock %}
+
+{% block contenido %}
+<section id="page-content" tabindex="-1" class="tickets-page" aria-labelledby="page-title">
+  {{ migas([('Inicio', url_for('panel.inicio')), ('Plazos SLA', none)]) }}
+  <h1 id="page-title" tabindex="-1">Plazos SLA</h1>
+  <p class="page-description">Tiempo máximo para resolver un ticket según su prioridad, contado desde su registro.
+    Si una prioridad no tiene plazo propio, se usa el valor por defecto.</p>
+
+  <div class="sla-tiles">
+    {% for prioridad, horas in efectivos.items() %}
+    <article class="sla-tile sla-tile-{{ prioridad|lower }}">
+      <span class="sla-tile-name">Prioridad {{ prioridad }}</span>
+      <strong>{{ horas }} <small>horas</small></strong>
+      <span class="sla-tile-note">{{ 'Plazo propio' if prioridad not in libres else 'Por defecto (' ~ defecto[prioridad] ~ ' h)' }}</span>
+    </article>
+    {% endfor %}
+  </div>
+
+  <div class="table-card">
+    {% if plazos %}
+    <div class="table-scroll">
+      <table class="ticket-table">
+        <thead>
+          <tr>
+            <th scope="col">Prioridad</th>
+            <th scope="col">Horas límite</th>
+            <th scope="col">Por defecto</th>
+            <th scope="col"><span class="sr-only">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in plazos %}
+          <tr>
+            <th scope="row"><span class="priority{{ ' priority-high' if p.prioridad == 'Alta' }}">{{ p.prioridad }}</span></th>
+            <td>
+              <form class="sla-inline" method="post" action="{{ url_for('sla.actualizar', plazo_id=p.id) }}">
+                <label class="sr-only" for="plazo-horas-{{ p.id }}">Horas límite de prioridad {{ p.prioridad }}</label>
+                <input id="plazo-horas-{{ p.id }}" name="horas" type="number" min="{{ min_horas }}" max="{{ max_horas }}" step="1"
+                  value="{{ p.horas_limite }}" required>
+                <button type="submit" class="row-action">Guardar</button>
+              </form>
+            </td>
+            <td>{{ defecto[p.prioridad] }} h</td>
+            <td>
+              <form method="post" action="{{ url_for('sla.eliminar', plazo_id=p.id) }}">
+                <button type="submit" class="row-action danger">Quitar<span class="sr-only"> plazo de prioridad {{ p.prioridad }}</span></button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <h2>Tu empresa usa los plazos por defecto</h2>
+      <p>Crea un plazo propio para cambiar el tiempo de una prioridad.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if libres %}
+  <form class="sla-form" method="post" action="{{ url_for('sla.crear') }}">
+    <h2>Nuevo plazo</h2>
+    <label for="plazo-prioridad">Prioridad</label>
+    <select id="plazo-prioridad" name="prioridad" required>
+      {% for p in libres %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+    </select>
+    <label for="plazo-nuevo-horas">Horas límite</label>
+    <input id="plazo-nuevo-horas" name="horas" type="number" min="{{ min_horas }}" max="{{ max_horas }}" step="1" required>
+    <button type="submit" class="button">Crear plazo</button>
+  </form>
+  {% endif %}
+  <p class="sla-help">Al editar un plazo cambia el semáforo de los tickets de tu empresa. Quitar un plazo devuelve esa prioridad a su valor por defecto.</p>
+</section>
+{% endblock %}
