@@ -2,6 +2,10 @@
 {% from "_navegacion.html" import migas with context %}
 {% set seccion = 'Tickets' %}
 {% block titulo %}Tickets{% endblock %}
+{% block css_extra %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sla.css') }}">
+{% endblock %}
 
 {% block contenido %}
 <section id="page-content" tabindex="-1" class="tickets-page" aria-labelledby="page-title">
@@ -21,15 +25,23 @@
     <label class="sr-only" for="f-estado">Estado</label>
     <select id="f-estado" name="estado">
       <option value="">Todos los estados</option>
-      {% for e in estados %}<option {{ 'selected' if f.estado == e }}>{{ e }}</option>{% endfor %}
+      {% for e in estados %}<option {{ 'selected' if f.estado==e }}>{{ e }}</option>{% endfor %}
     </select>
     <label class="sr-only" for="f-prioridad">Prioridad</label>
     <select id="f-prioridad" name="prioridad">
       <option value="">Todas las prioridades</option>
-      {% for p in prioridades %}<option {{ 'selected' if f.prioridad == p }}>{{ p }}</option>{% endfor %}
+      {% for p in prioridades %}<option {{ 'selected' if f.prioridad==p }}>{{ p }}</option>{% endfor %}
     </select>
     <button class="new-ticket">Filtrar</button>
   </form>
+
+  {% if vencidos or por_vencer %}
+  <div class="sla-alert" role="alert">
+    <strong>Atención:</strong>
+    {% if vencidos %}{{ vencidos }} ticket(s) vencido(s){% endif %}{% if vencidos and por_vencer %} y {% endif %}{% if
+    por_vencer %}{{ por_vencer }} por vencer{% endif %}.
+  </div>
+  {% endif %}
 
   <div class="table-card">
     {% if tickets %}
@@ -54,7 +66,8 @@
             <td>{{ t.categoria }}</td>
             <td><span class="priority{{ ' priority-high' if t.prioridad == 'Alta' }}">{{ t.prioridad }}</span></td>
             <td><span class="ticket-status">{{ t.estado }}</span></td>
-            <td><span class="sla sla-{{ t.sla.clase }}"><strong>{{ t.sla.estado }}</strong>{{ t.sla.detalle }}</span></td>
+            <td><span class="sla sla-{{ t.sla.clase }}"><strong>{{ t.sla.estado }}</strong>{{ t.sla.detalle }}</span>
+            </td>
             <td>{{ t.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
             <td>
               {% if t.evidencia_id %}
@@ -64,8 +77,14 @@
               </div>
               {% else %}<span class="no-evidence">—</span>{% endif %}
             </td>
-            <td><a class="row-action" href="{{ url_for('tickets.detalle', ticket_id=t.id) }}">Ver detalle<span
-                  class="sr-only"> de {{ t.id|codigo_ticket }}</span></a></td>
+            <td class="row-actions">
+              <a class="row-action" href="{{ url_for('tickets.detalle', ticket_id=t.id) }}">Ver detalle<span
+                  class="sr-only"> de {{ t.id|codigo_ticket }}</span></a>
+              {% if t.editable %}
+              <a class="row-action" href="{{ url_for('tickets.editar', ticket_id=t.id) }}">Editar<span class="sr-only">
+                  {{ t.id|codigo_ticket }}</span></a>
+              {% endif %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>

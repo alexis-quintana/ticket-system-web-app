@@ -1,33 +1,46 @@
+{# Formulario del Módulo 2. Sirve para crear (ticket = None) y para editar (ticket con datos). #}
 {% extends "base_app.html" %}
 {% from "_navegacion.html" import migas with context %}
 {% set seccion = 'Tickets' %}
-{% block titulo %}Crear ticket{% endblock %}
+{% set editando = ticket is not none %}
+{% block titulo %}{{ 'Editar ' ~ (ticket.id|codigo_ticket) if editando else 'Crear ticket' }}{% endblock %}
 {% block css_extra %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/ticket-create.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tickets-formulario.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/validacion.css') }}">
 {% endblock %}
 
 {% block contenido %}
 <section id="page-content" tabindex="-1" class="tickets-page create-page" aria-labelledby="page-title">
+    {% if editando %}
+    {{ migas([('Inicio', url_for('panel.inicio')), ('Tickets', url_for('tickets.listar')), ('Editar ' ~ (ticket.id|codigo_ticket), none)]) }}
+    <h1 id="page-title" tabindex="-1">Editar ticket {{ ticket.id|codigo_ticket }}</h1>
+    <p class="page-description">Puedes corregir los datos mientras el ticket siga en estado Abierto.</p>
+    {% else %}
     {{ migas([('Inicio', url_for('panel.inicio')), ('Tickets', url_for('tickets.listar')), ('Nuevo ticket', none)]) }}
     <h1 id="page-title" tabindex="-1">Crear ticket</h1>
     <p class="page-description">Describe el problema. Los campos con * son obligatorios.</p>
+    {% endif %}
 
-    <form class="incident-card" id="form-ticket" method="post" action="{{ url_for('tickets.procesar_ticket') }}"
-        enctype="multipart/form-data" novalidate>
+    <form class="incident-card" id="form-ticket" method="post" enctype="multipart/form-data" novalidate
+        action="{{ url_for('tickets.actualizar', ticket_id=ticket.id) if editando else url_for('tickets.procesar_ticket') }}"
+        data-fotos-actuales="{{ fotos|length }}"
+        data-confirmar="{{ '¿Guardar los cambios del ticket?' if editando else '¿Estás seguro de que deseas registrar el ticket?' }}">
         <h2>Datos de la incidencia</h2>
+        {% if not editando %}
         <p class="requester-info">Solicitante: <strong>{{ usuario_actual.nombre }}</strong></p>
+        {% endif %}
 
         <div class="field form-field">
             <label class="field-label" for="asunto">Asunto *</label>
             <input class="field-input" id="asunto" name="asunto" maxlength="120" autocomplete="off"
+                value="{{ ticket.asunto if editando }}"
                 placeholder="Ej.: No puedo imprimir desde la PC de recepción"><small></small>
         </div>
 
         <div class="field form-field">
             <label class="field-label" for="descripcion">Descripción *</label>
             <textarea class="field-input" id="descripcion" name="descripcion" maxlength="2000" rows="5"
-                placeholder="¿Qué pasó, desde cuándo y qué intentaste?"></textarea><small></small>
+                placeholder="¿Qué pasó, desde cuándo y qué intentaste?">{{ ticket.descripcion if editando }}</textarea><small></small>
         </div>
 
         <div class="form-columns">
@@ -35,25 +48,45 @@
                 <label class="field-label" for="categoria">Categoría *</label>
                 <select class="field-input" id="categoria" name="categoria_id">
                     <option value="">— Selecciona —</option>
-                    {% for c in categorias %}<option value="{{ c.id }}">{{ c.nombre }}</option>{% endfor %}
+                    {% for c in categorias %}
+                    <option value="{{ c.id }}" {{ 'selected' if editando and c.id == ticket.categoria_id }}>{{ c.nombre }}</option>
+                    {% endfor %}
                 </select><small></small>
             </div>
             <div class="field form-field">
                 <label class="field-label" for="prioridad">Prioridad *</label>
                 <select class="field-input" id="prioridad" name="prioridad">
                     <option value="">— Selecciona —</option>
-                    {% for p in prioridades %}<option>{{ p }}</option>{% endfor %}
+                    {% for p in prioridades %}
+                    <option {{ 'selected' if editando and p == ticket.prioridad }}>{{ p }}</option>
+                    {% endfor %}
                 </select><small></small>
             </div>
         </div>
+
         <div class="evidence-panel form-field">
             <h3>Fotos de evidencia (opcional)</h3>
             <p class="field-hint">Hasta 3 fotos JPG o PNG de máximo 5 MB cada una.</p>
-            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+
+            {% if fotos %}
+            <p class="field-hint"><strong>Fotos actuales</strong></p>
+            <div class="preview-images" id="fotos-actuales">
+                {% for e in fotos %}
+                <div>
+                    <img src="{{ url_for('tickets.evidencia', evidencia_id=e.id) }}" alt="{{ e.nombre_original }}">
+                    <button type="button" class="secondary-button btn-eliminar-foto"
+                        data-url="{{ url_for('tickets.eliminar_evidencia', evidencia_id=e.id) }}"
+                        data-nombre="{{ e.nombre_original }}">Eliminar</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:12px;">
                 <input type="file" id="evidencias" name="evidencias" class="sr-only" accept="image/jpeg,image/png"
                     multiple>
                 <label for="evidencias" class="secondary-button" style="cursor:pointer; gap:8px;">
-                    <i class="bi bi-image icon" aria-hidden="true" style="width:18px;height:18px;"></i>Adjuntar fotos</label>
+                    <i class="bi bi-image icon" aria-hidden="true" style="width:18px;height:18px;"></i>{{ 'Agregar fotos' if editando else 'Adjuntar fotos' }}</label>
                 <span class="field-hint" id="evidencias-texto">Ninguna foto seleccionada</span>
             </div>
             <small></small>
@@ -64,16 +97,16 @@
 
         <div class="create-actions">
             <a class="secondary-button" href="{{ url_for('tickets.listar') }}">Cancelar</a>
-            <button class="button" id="btn-guardar">Registrar ticket</button>
+            <button class="button" id="btn-guardar">{{ 'Guardar cambios' if editando else 'Registrar ticket' }}</button>
         </div>
     </form>
 </section>
 
 <div id="confirmModal" class="confirm-overlay hidden">
-    <div class="confirm-box">
-        <p>¿Estás seguro de que deseas registrar el ticket?</p>
+    <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="confirmTexto">
+        <p id="confirmTexto"></p>
         <div class="confirm-actions">
-            <button id="confirmYes" class="button">Sí, registrar</button>
+            <button id="confirmYes" class="button">Sí, continuar</button>
             <button id="confirmNo" class="secondary-button">Cancelar</button>
         </div>
     </div>

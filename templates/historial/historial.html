@@ -22,7 +22,12 @@ none)]) }}
           <p class="detail-muted mb-1">{{ t.id|codigo_ticket }}</p>
           <h2 id="page-title">{{ t.asunto }}</h2>
         </div>
-        <span class="state-badge" data-state="{{ t.estado }}">{{ t.estado }}</span>
+        <div class="detail-heading-actions">
+          {% if ticket_editable(t.id) %}<a class="boton-editar-ticket"
+            href="{{ url_for('tickets.editar', ticket_id=t.id) }}"><i class="bi bi-pencil"
+              aria-hidden="true"></i>Editar</a>{% endif %}
+          <span class="state-badge" data-state="{{ t.estado }}">{{ t.estado }}</span>
+        </div>
       </div>
       <dl class="ticket-facts">
         <div>
