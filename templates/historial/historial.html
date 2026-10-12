@@ -76,6 +76,11 @@ none)]) }}
         data-tecnico="{{ t.tecnico_id or '' }}" data-bs-toggle="modal" data-bs-target="#modal-asignar">
         {{ 'Reasignar técnico' if t.tecnico else 'Asignar técnico' }}</button>
       {% endif %}
+      {% if t.puede_quitar %}
+      <button type="button" class="secondary-button hist-quitar btn-quitar" data-id="{{ t.id }}"
+        data-asunto="{{ t.asunto }}" data-tecnico="{{ t.tecnico }}" data-bs-toggle="modal"
+        data-bs-target="#modal-quitar">Quitar asignación</button>
+      {% endif %}
     </section>
 
     <section class="detail-card">

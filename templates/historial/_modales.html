@@ -62,4 +62,31 @@
     </form>
   </div>
 </div>
+
+<!-- Quitar asignación (solo administrador y solo con el ticket Abierto).
+     El historial no se borra: queda el evento "Desasignación". -->
+<div class="modal fade" id="modal-quitar" tabindex="-1" aria-labelledby="modal-quitar-titulo" aria-hidden="true">
+  <div class="modal-dialog">
+    <form class="modal-content" id="form-quitar" novalidate>
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-quitar-titulo">Quitar asignación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body vstack gap-3">
+        <p class="hist-modal-ticket" id="quitar-ticket"></p>
+        <p class="mb-0">El ticket volverá a la bandeja <strong>Sin asignar</strong>. El cambio quedará registrado en el
+          historial.</p>
+        <div class="form-field"><label class="form-label" for="quitar-comentario">Motivo (opcional)</label>
+          <textarea class="form-control" id="quitar-comentario" name="comentario" rows="3" maxlength="1000"
+            placeholder="Por qué se quita al técnico"></textarea><small></small>
+        </div>
+        <div id="quitar-mensaje" role="status"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="secondary-button" data-bs-dismiss="modal">Cancelar</button>
+        <button class="button hist-btn hist-btn-peligro" id="quitar-guardar">Quitar asignación</button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endif %}
