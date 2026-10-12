@@ -213,19 +213,23 @@ def api_usuarios():
     return respuesta(1, dict(id=uid), mensaje, 201)
 
 
-@bp.route('/api/usuarios/<int:uid>', methods=['GET', 'PUT', 'DELETE'])
+@bp.route('/api/usuarios/<int:uid>')
 @roles_required('Administrador')
 @ruta_json
 def api_usuario(uid):
-    emp, yo = session['empresa_id'], session['usuario_id']
-    if request.method == 'DELETE':
-        User.eliminar(emp, uid, yo)
-        return respuesta(1, dict(id=uid), "Usuario eliminado correctamente.")
-    actual = User.obtener(emp, uid)
+    actual = User.obtener(session['empresa_id'], uid)
     if not actual:
         raise UserError("El usuario no existe.", 404)
-    if request.method == 'GET':
-        return respuesta(1, actual, "Usuario encontrado.")
+    return respuesta(1, actual, "Usuario encontrado.")
+
+
+@bp.route('/api/usuarios/<int:uid>/actualizar', methods=['POST'])
+@roles_required('Administrador')
+@ruta_json
+def api_actualizar_usuario(uid):
+    emp, yo = session['empresa_id'], session['usuario_id']
+    if not User.obtener(emp, uid):
+        raise UserError("El usuario no existe.", 404)
     datos = datos_peticion()
     datos['id'] = str(uid)
     if 'activo' not in datos:
@@ -234,7 +238,15 @@ def api_usuario(uid):
     return respuesta(1, dict(id=uid), mensaje)
 
 
-@bp.route('/api/usuarios/<int:uid>/estado', methods=['PATCH'])
+@bp.route('/api/usuarios/<int:uid>/eliminar', methods=['POST'])
+@roles_required('Administrador')
+@ruta_json
+def api_eliminar_usuario(uid):
+    User.eliminar(session['empresa_id'], uid, session['usuario_id'])
+    return respuesta(1, dict(id=uid), "Usuario eliminado correctamente.")
+
+
+@bp.route('/api/usuarios/<int:uid>/estado', methods=['POST'])
 @roles_required('Administrador')
 @ruta_json
 def api_estado(uid):
