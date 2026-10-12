@@ -156,11 +156,11 @@ async function accionUsuario(boton, eliminar) {
     boton.disabled = true;
     const aviso = $('acciones-mensaje');
     try {
-        const opciones = eliminar ? { method: 'DELETE' } : {
-            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        const opciones = eliminar ? { method: 'POST' } : {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ activo: Number(boton.dataset.activo) })
         };
-        const response = await fetch('/api/usuarios/' + id + (eliminar ? '' : '/estado'), opciones);
+        const response = await fetch('/api/usuarios/' + id + (eliminar ? '/eliminar' : '/estado'), opciones);
         const r = await response.json();
         aviso.className = 'alert ' + (r.code === 1 ? 'alert-success' : 'alert-danger');
         aviso.textContent = r.msge;

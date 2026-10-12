@@ -1,4 +1,4 @@
-/* Mejoras de navegación e interactividad. Se carga al final, después de polish.css.
+/* Mejoras de navegación e interactividad. Se carga al final, después de pulido.css.
    Respeta "Reducir animaciones" de Configuración (body.reduce-motion) y prefers-reduced-motion. */
 
 :root {
@@ -527,7 +527,7 @@ body:has(.app-shell) .button-sm {
 /* ---------- Tipografía: escala cómoda de lectura ----------
    Mínimo 13 px para textos de apoyo, 14 px para tablas, controles y menús, 16 px para párrafos.
    Se usa @media screen para no alterar la impresión de reportes, y selectores simples para que
-   la opción "Texto grande" de Configuración (settings.css) siga ganando. */
+   la opción "Texto grande" de Configuración (configuracion.css) siga ganando. */
 :root {
   --font-size-help: 13px;
 }
@@ -1918,7 +1918,7 @@ i.bi.icon::before {
   height: 16px;
 }
 
-/* En pantallas angostas layout.css oculta `.profile strong` (nombre del usuario); el panel de
+/* En pantallas angostas estructura.css oculta `.profile strong` (nombre del usuario); el panel de
    notificaciones vive dentro de .profile y debe conservar sus títulos. */
 .profile .notif-panel strong {
   display: block;

@@ -200,23 +200,29 @@ def api_tickets():
                      "Ticket TK-" + str(ticket_id).zfill(4) + " registrado correctamente.", 201)
 
 
-@bp.route("/api/tickets/<int:ticket_id>", methods=["GET", "PUT"])
-@roles_required()
-def api_ticket(ticket_id):
-    usuario = usuario_sesion()
+# Devuelve el ticket con sus fotos
+def _ticket_con_evidencias(ticket_id, usuario):
     t = Ticket.obtener(ticket_id, usuario)
-    if request.method == "PUT":
-        t.actualizar(usuario, datos_api(), fotos_subidas())
-        t = Ticket.obtener(ticket_id, usuario)
-        mensaje = "Ticket actualizado correctamente."
-    else:
-        mensaje = "Ticket encontrado."
     data = t.a_diccionario()
     data["evidencias"] = [e.a_diccionario() for e in Evidencia.de_ticket(t.id, t.empresa_id)]
-    return respuesta(1, data, mensaje)
+    return data
 
 
-@bp.route("/api/tickets/<int:ticket_id>/evidencias/<int:evidencia_id>", methods=["DELETE"])
+@bp.route("/api/tickets/<int:ticket_id>")
+@roles_required()
+def api_ticket(ticket_id):
+    return respuesta(1, _ticket_con_evidencias(ticket_id, usuario_sesion()), "Ticket encontrado.")
+
+
+@bp.route("/api/tickets/<int:ticket_id>/actualizar", methods=["POST"])
+@roles_required()
+def api_actualizar_ticket(ticket_id):
+    usuario = usuario_sesion()
+    Ticket.obtener(ticket_id, usuario).actualizar(usuario, datos_api(), fotos_subidas())
+    return respuesta(1, _ticket_con_evidencias(ticket_id, usuario), "Ticket actualizado correctamente.")
+
+
+@bp.route("/api/tickets/<int:ticket_id>/evidencias/<int:evidencia_id>/eliminar", methods=["POST"])
 @roles_required()
 def api_eliminar_evidencia(ticket_id, evidencia_id):
     usuario = usuario_sesion()

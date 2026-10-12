@@ -12,7 +12,7 @@
     rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   {% for css in
-  ['global','components','auth','layout','dashboard','tickets','users','notificaciones','reports','settings','polish','ux','comun']
+  ['global','componentes','auth','estructura','dashboard','tickets','usuarios','notificaciones','reportes','configuracion','pulido','ux','comun']
   %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/' ~ css ~ '.css') }}">
   {% endfor %}
@@ -38,7 +38,7 @@
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="{{ url_for('static', filename='js/shell.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/interfaz.js') }}"></script>
   <script src="{{ url_for('static', filename='js/notificaciones.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>

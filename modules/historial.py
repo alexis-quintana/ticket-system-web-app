@@ -117,9 +117,9 @@ def cambiar_estado(ticket_id):
 #   GET    /api/tickets/<id>/historial            línea de tiempo del ticket
 #   GET    /api/historial/<id>                    detalle de un evento
 #   POST   /api/tickets/<id>/asignacion           asignar (ticket SIN técnico)   {"tecnico_id": 3, "comentario": "..."}
-#   PUT    /api/tickets/<id>/asignacion           reasignar (ticket CON técnico) {"tecnico_id": 4, "comentario": "..."}
-#   DELETE /api/tickets/<id>/asignacion           quitar la asignación (comentario opcional)
-#   PATCH  /api/tickets/<id>/estado               cambiar estado {"estado": "En proceso", "comentario": "..."}
+#   POST   /api/tickets/<id>/reasignacion         reasignar (ticket CON técnico) {"tecnico_id": 4, "comentario": "..."}
+#   POST   /api/tickets/<id>/quitar_asignacion    quitar la asignación (comentario opcional)
+#   POST   /api/tickets/<id>/estado               cambiar estado {"estado": "En proceso", "comentario": "..."}
 #                                                 (el Solicitante dueño: solo desde Resuelto a Cerrado o En proceso)
 # =====================================================================
 def respuesta(code, data, msge, estado=200):
@@ -193,27 +193,43 @@ def api_evento(evento_id):
     return respuesta(1, Historial.obtener(evento_id, usuario_sesion()).a_diccionario(), "Evento encontrado.")
 
 
-@bp.route("/api/tickets/<int:ticket_id>/asignacion", methods=["POST", "PUT", "DELETE"])
+# Asigna o reasigna un técnico: primera=True exige que el ticket no tenga técnico; primera=False, que ya tenga
+def _asignar_api(ticket_id, primera):
+    usuario = usuario_sesion()
+    datos = datos_api()
+    actual = Historial.ticket(ticket_id, usuario)
+    if primera and actual["tecnico_id"]:
+        raise HistorialError("El ticket ya tiene técnico. Usa /reasignacion para cambiarlo.", 409)
+    if not primera and not actual["tecnico_id"]:
+        raise HistorialError("El ticket no tiene técnico. Usa /asignacion para asignarlo.", 409)
+    mensaje = Historial.asignar(ticket_id, usuario, datos.get("tecnico_id", ""), datos.get("comentario", ""))
+    t = Historial.ticket_a_diccionario(Historial.ticket(ticket_id, usuario))
+    return respuesta(1, t, mensaje, 201 if primera else 200)
+
+
+@bp.route("/api/tickets/<int:ticket_id>/asignacion", methods=["POST"])
 @roles_required("Administrador")
 def api_asignacion(ticket_id):
+    return _asignar_api(ticket_id, True)
+
+
+@bp.route("/api/tickets/<int:ticket_id>/reasignacion", methods=["POST"])
+@roles_required("Administrador")
+def api_reasignacion(ticket_id):
+    return _asignar_api(ticket_id, False)
+
+
+@bp.route("/api/tickets/<int:ticket_id>/quitar_asignacion", methods=["POST"])
+@roles_required("Administrador")
+def api_quitar_asignacion(ticket_id):
     usuario = usuario_sesion()
-    if request.method == "DELETE":
-        datos = datos_api()          # el comentario es opcional; sin cuerpo llega vacío
-        mensaje = Historial.quitar_asignacion(ticket_id, usuario, datos.get("comentario", ""))
-    else:
-        datos = datos_api()
-        # POST = primera asignación; PUT = reasignación (como dice la documentación de arriba)
-        actual = Historial.ticket(ticket_id, usuario)
-        if request.method == "POST" and actual["tecnico_id"]:
-            raise HistorialError("El ticket ya tiene técnico. Usa PUT para reasignarlo.", 409)
-        if request.method == "PUT" and not actual["tecnico_id"]:
-            raise HistorialError("El ticket no tiene técnico. Usa POST para asignarlo.", 409)
-        mensaje = Historial.asignar(ticket_id, usuario, datos.get("tecnico_id", ""), datos.get("comentario", ""))
+    datos = datos_api()          # el comentario es opcional; sin cuerpo llega vacío
+    mensaje = Historial.quitar_asignacion(ticket_id, usuario, datos.get("comentario", ""))
     t = Historial.ticket_a_diccionario(Historial.ticket(ticket_id, usuario))
-    return respuesta(1, t, mensaje, 201 if request.method == "POST" else 200)
+    return respuesta(1, t, mensaje)
 
 
-@bp.route("/api/tickets/<int:ticket_id>/estado", methods=["PATCH"])
+@bp.route("/api/tickets/<int:ticket_id>/estado", methods=["POST"])
 @roles_required()
 def api_estado(ticket_id):
     usuario = usuario_sesion()
