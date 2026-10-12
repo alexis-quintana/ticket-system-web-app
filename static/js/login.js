@@ -4,7 +4,6 @@ const loginForm = document.querySelector('#loginForm');
 if (loginForm) {
     const emailEl = document.querySelector('#loginEmail');
     const passwordEl = document.querySelector('#loginPassword');
-    const roleError = document.querySelector('#role-error');
     const mensaje = document.querySelector('#mensaje');
 
     const isRequired = value => value !== '';
@@ -30,22 +29,17 @@ if (loginForm) {
         showSuccess(emailEl); return true;
     };
     const checkPassword = () => {
-        const password = passwordEl.value.trim();
+        const password = passwordEl.value;
         if (!isRequired(password)) { showError(passwordEl, 'Ingresa tu contraseña.'); return false; }
         if (password.length < 8) { showError(passwordEl, 'La contraseña debe tener al menos 8 caracteres.'); return false; }
         showSuccess(passwordEl); return true;
-    };
-    const checkRole = () => {
-        const ok = !!loginForm.querySelector('[name="role"]:checked');
-        roleError.textContent = ok ? '' : 'Selecciona el rol con el que deseas acceder.';
-        return ok;
     };
 
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         mensaje.innerHTML = '';
-        const roleOk = checkRole(), emailOk = checkEmail(), passwordOk = checkPassword();
-        if (!(roleOk && emailOk && passwordOk)) return;
+        const emailOk = checkEmail(), passwordOk = checkPassword();
+        if (!(emailOk && passwordOk)) return;
 
         const boton = loginForm.querySelector('[type="submit"]');
         const textoOriginal = boton.innerHTML;
@@ -54,11 +48,11 @@ if (loginForm) {
         try {
             const response = await fetch('/procesar_login', { method: 'POST', body: new FormData(loginForm) });
             const resultado = await response.json();
-            if (resultado.ok) {
-                window.location.href = resultado.destino;   // la cookie JWT ya fue guardada
+            if (resultado.code === 1) {
+                window.location.href = resultado.data.destino;   // La sesión de Flask ya fue iniciada.
                 return;
             }
-            mensaje.innerHTML = '<div class="alert alert-danger">' + resultado.mensaje + '</div>';
+            mensaje.innerHTML = '<div class="alert alert-danger">' + resultado.msge + '</div>';
         } catch (error) {
             console.error(error);
             mensaje.innerHTML = '<div class="alert alert-danger">Error al conectar con el servidor.</div>';
@@ -69,5 +63,4 @@ if (loginForm) {
 
     emailEl.addEventListener('input', () => { if (emailEl.closest('.form-field').classList.contains('error')) checkEmail(); });
     passwordEl.addEventListener('input', () => { if (passwordEl.closest('.form-field').classList.contains('error')) checkPassword(); });
-    loginForm.querySelectorAll('[name="role"]').forEach(r => r.addEventListener('change', checkRole));
 }
