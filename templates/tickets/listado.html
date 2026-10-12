@@ -18,21 +18,30 @@
     <a class="button" href="{{ url_for('tickets.nuevo') }}">+ Crear ticket</a>
   </div>
 
-  <form class="ticket-filters" data-auto-submit method="get" action="{{ url_for('tickets.listar') }}" role="search"
+  <form class="filtros-tickets" data-auto-submit method="get" action="{{ url_for('tickets.listar') }}" role="search"
     aria-label="Filtrar tickets">
-    <label class="sr-only" for="f-q">Buscar por asunto o código</label>
-    <input id="f-q" name="q" value="{{ f.q }}" placeholder="Buscar por asunto o código (TK-0001)" autocomplete="off">
-    <label class="sr-only" for="f-estado">Estado</label>
-    <select id="f-estado" name="estado">
-      <option value="">Todos los estados</option>
-      {% for e in estados %}<option {{ 'selected' if f.estado==e }}>{{ e }}</option>{% endfor %}
-    </select>
-    <label class="sr-only" for="f-prioridad">Prioridad</label>
-    <select id="f-prioridad" name="prioridad">
-      <option value="">Todas las prioridades</option>
-      {% for p in prioridades %}<option {{ 'selected' if f.prioridad==p }}>{{ p }}</option>{% endfor %}
-    </select>
-    <button class="new-ticket">Filtrar</button>
+    <div class="filtro filtro-buscar">
+      <label for="f-q">Buscar</label>
+      <input id="f-q" name="q" value="{{ f.q }}" placeholder="Asunto o N° de ticket" autocomplete="off">
+    </div>
+    <div class="filtro">
+      <label for="f-estado">Estado</label>
+      <select id="f-estado" name="estado">
+        <option value="">Todos</option>
+        {% for e in estados %}<option {{ 'selected' if f.estado==e }}>{{ e }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="filtro">
+      <label for="f-prioridad">Prioridad</label>
+      <select id="f-prioridad" name="prioridad">
+        <option value="">Todas</option>
+        {% for p in prioridades %}<option {{ 'selected' if f.prioridad==p }}>{{ p }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="filtro-acciones">
+      <button class="button">Filtrar</button>
+      <a class="secondary-button" href="{{ url_for('tickets.listar') }}">Limpiar</a>
+    </div>
   </form>
 
   {% if vencidos or por_vencer %}

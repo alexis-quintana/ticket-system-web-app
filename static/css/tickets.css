@@ -502,3 +502,53 @@ dialog.ticket-dialog {
   border-color: #293844;
   color: #293844;
 }
+
+.filtros-tickets {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr) minmax(0, 2fr) auto;
+  gap: 8px;
+  align-items: end;
+  margin: 16px 0;
+}
+
+.filtros-tickets label {
+  display: block;
+  margin-bottom: 8px;
+  color: #293844;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.filtros-tickets input,
+.filtros-tickets select {
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  background: #fff;
+  color: #212529;
+  font-size: 15px;
+}
+
+.filtros-tickets input:focus {
+  outline: none;
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .25);
+}
+
+.filtro-acciones {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 760px) {
+  .filtros-tickets {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filtro-buscar,
+  .filtro-acciones {
+    grid-column: 1 / -1;
+  }
+}
