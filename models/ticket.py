@@ -298,6 +298,9 @@ class Ticket:
                             "WHERE id=%s AND empresa_id=%s AND estado='Abierto'",
                             (asunto, descripcion, categoria_id, prioridad, self.id, self.empresa_id))
                 Evidencia.guardar_archivos(cur, self.id, self.empresa_id, fotos, guardados)
+                from models.historial import Historial
+                Historial.registrar_cambio_prioridad(cur, usuario, self.id, self.estado,
+                    self.prioridad, prioridad)
             con.commit()
         except Exception:
             con.rollback()
