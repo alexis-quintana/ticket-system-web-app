@@ -144,6 +144,28 @@
   </div>
 </div>
 
+
+<!-- Confirmación de eliminación y cambio de estado -->
+<div class="modal fade" id="modal-accion-usuario" tabindex="-1"
+     aria-labelledby="accion-titulo" aria-describedby="accion-descripcion" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="accion-titulo">Eliminar usuario</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p id="accion-descripcion" class="mb-0"></p>
+        <div id="accion-error" class="alert alert-danger mt-3 mb-0" role="alert" hidden></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="secondary-button" id="accion-cancelar" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="button" id="accion-confirmar">Sí, eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Confirmación antes de enviar (como en clase) -->
 <div id="confirmModal" class="confirm-overlay hidden">
   <div class="confirm-box">

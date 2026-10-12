@@ -1,4 +1,3 @@
-// Usuarios (admin): validación en JS + modal de confirmación + fetch a Flask (patrón visto en clase)
 const $ = id => document.getElementById(id);
 const form = $('signup');
 const usernameEl = $('username'), apellidosEl = $('apellidos'), dniEl = $('dni'), telefonoEl = $('telefono'), emailEl = $('email'), passwordEl = $('password'), confirmPasswordEl = $('confirm-password');
@@ -146,30 +145,83 @@ form.addEventListener('input', debounce(e => {
 }));
 
 
-// Estado y eliminación usan la API REST del mismo módulo auth.
-async function accionUsuario(boton, eliminar) {
-    const id = boton.dataset.id;
-    const pregunta = eliminar
-        ? '¿Eliminar definitivamente a ' + boton.dataset.nombre + '? Si tiene actividad, deberás desactivarlo.'
-        : '¿Deseas ' + (boton.dataset.activo === '1' ? 'activar' : 'desactivar') + ' esta cuenta?';
-    if (!window.confirm(pregunta)) return;
+// Confirmación dentro de la página: se reutiliza Bootstrap, como al editar.
+const accionModalEl = $('modal-accion-usuario');
+const accionModal = new bootstrap.Modal(accionModalEl);
+const confirmarAccion = $('accion-confirmar');
+const errorAccion = $('accion-error');
+let accionPendiente = null;
+let enviandoAccion = false;
+let recargando = false;
+
+function prepararAccion(boton, eliminar) {
+    if (enviandoAccion || accionPendiente || recargando) return;
+    accionPendiente = { boton, eliminar, id: boton.dataset.id, activo: Number(boton.dataset.activo) };
+    const activar = boton.dataset.activo === '1';
+    $('accion-titulo').textContent = eliminar ? 'Eliminar usuario' : (activar ? 'Activar usuario' : 'Desactivar usuario');
+    $('accion-descripcion').textContent = eliminar
+        ? '¿Eliminar definitivamente a ' + boton.dataset.nombre + '? Esta acción no se puede deshacer. Si tiene actividad relacionada, deberás desactivarlo.'
+        : '¿Deseas ' + (activar ? 'activar' : 'desactivar') + ' esta cuenta?';
+    confirmarAccion.textContent = eliminar ? 'Sí, eliminar' : (activar ? 'Sí, activar' : 'Sí, desactivar');
+    confirmarAccion.disabled = false;
+    errorAccion.hidden = true;
+    errorAccion.textContent = '';
+    accionModal.show(boton);
+}
+
+// No se puede cerrar mientras la petición está en curso.
+accionModalEl.addEventListener('hide.bs.modal', e => {
+    if (enviandoAccion) e.preventDefault();
+});
+accionModalEl.addEventListener('shown.bs.modal', () => $('accion-cancelar').focus());
+accionModalEl.addEventListener('hidden.bs.modal', () => {
+    const origen = accionPendiente?.boton;
+    accionPendiente = null;
+    if (origen && origen.isConnected && !origen.disabled) origen.focus();
+});
+
+confirmarAccion.addEventListener('click', async () => {
+    if (!accionPendiente || enviandoAccion || recargando) return;
+    const { boton, eliminar, id, activo } = accionPendiente;
+    const textoOriginal = confirmarAccion.textContent;
+    enviandoAccion = true;
     boton.disabled = true;
-    const aviso = $('acciones-mensaje');
+    confirmarAccion.disabled = true;
+    confirmarAccion.textContent = 'Procesando…';
+    accionModalEl.querySelectorAll('[data-bs-dismiss="modal"]').forEach(b => b.disabled = true);
+    errorAccion.hidden = true;
+    let completado = false;
     try {
         const opciones = eliminar ? { method: 'DELETE' } : {
             method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ activo: Number(boton.dataset.activo) })
+            body: JSON.stringify({ activo })
         };
         const response = await fetch('/api/usuarios/' + id + (eliminar ? '' : '/estado'), opciones);
         const r = await response.json();
-        aviso.className = 'alert ' + (r.code === 1 ? 'alert-success' : 'alert-danger');
-        aviso.textContent = r.msge;
-        if (r.code === 1) { setTimeout(() => location.reload(), 700); return; }
+        if (response.ok && r.code === 1) {
+            const aviso = $('acciones-mensaje');
+            aviso.className = 'alert alert-success';
+            aviso.textContent = r.msge;
+            completado = true;
+        } else {
+            errorAccion.textContent = r.msge || 'No se pudo completar la operación.';
+            errorAccion.hidden = false;
+        }
     } catch (error) {
-        aviso.className = 'alert alert-danger';
-        aviso.textContent = 'Error al conectar con el servidor.';
+        errorAccion.textContent = 'Error al conectar con el servidor. Inténtalo de nuevo.';
+        errorAccion.hidden = false;
+    } finally {
+        enviandoAccion = false;
+        boton.disabled = completado;
+        confirmarAccion.disabled = completado;
+        confirmarAccion.textContent = textoOriginal;
+        accionModalEl.querySelectorAll('[data-bs-dismiss="modal"]').forEach(b => b.disabled = false);
     }
-    boton.disabled = false;
-}
-document.querySelectorAll('.btn-eliminar').forEach(b => b.addEventListener('click', () => accionUsuario(b, true)));
-document.querySelectorAll('.btn-estado').forEach(b => b.addEventListener('click', () => accionUsuario(b, false)));
+    if (completado) {
+        recargando = true;
+        accionModal.hide();
+        setTimeout(() => location.reload(), 700);
+    }
+});
+document.querySelectorAll('.btn-eliminar').forEach(b => b.addEventListener('click', () => prepararAccion(b, true)));
+document.querySelectorAll('.btn-estado').forEach(b => b.addEventListener('click', () => prepararAccion(b, false)));
