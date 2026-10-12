@@ -22,7 +22,23 @@ class Notificacion:
                     "INSERT INTO notificaciones (usuario_id, ticket_id, tipo, mensaje) "
                     "VALUES (%s, %s, %s, %s)",
                     (usuario_id, ticket_id, tipo, mensaje))
+                nuevo_id = cursor.lastrowid
             conexion.commit()
+            return nuevo_id
+        finally:
+            conexion.close()
+
+    @staticmethod
+    def obtener(notificacion_id, usuario_id):
+        """Una notificación del usuario, o None si no existe o es de otra persona."""
+        conexion = obtener_conexion()
+        try:
+            with conexion.cursor() as cursor:
+                cursor.execute(
+                    "SELECT id, ticket_id, tipo, mensaje, leida, created_at "
+                    "FROM notificaciones WHERE id = %s AND usuario_id = %s",
+                    (notificacion_id, usuario_id))
+                return cursor.fetchone()
         finally:
             conexion.close()
 
@@ -98,6 +114,36 @@ class Notificacion:
                 cursor.execute(
                     "UPDATE notificaciones SET leida = 1 "
                     "WHERE usuario_id = %s AND leida = 0",
+                    (usuario_id,))
+                filas = cursor.rowcount
+            conexion.commit()
+            return filas
+        finally:
+            conexion.close()
+
+    @staticmethod
+    def eliminar(notificacion_id, usuario_id):
+        """Borra una notificación del usuario. Devuelve cuántas filas se borraron (0 o 1)."""
+        conexion = obtener_conexion()
+        try:
+            with conexion.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM notificaciones WHERE id = %s AND usuario_id = %s",
+                    (notificacion_id, usuario_id))
+                filas = cursor.rowcount
+            conexion.commit()
+            return filas
+        finally:
+            conexion.close()
+
+    @staticmethod
+    def eliminar_leidas(usuario_id):
+        """Borra todas las notificaciones ya leídas del usuario. Devuelve cuántas fueron."""
+        conexion = obtener_conexion()
+        try:
+            with conexion.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM notificaciones WHERE usuario_id = %s AND leida = 1",
                     (usuario_id,))
                 filas = cursor.rowcount
             conexion.commit()

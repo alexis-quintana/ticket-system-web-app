@@ -145,19 +145,59 @@ function actualizarResumen(noLeidas) {
   if (todas) todas.disabled = noLeidas === 0;
 }
 
+function iniciarEliminarLeidas(formulario) {
+  const boton = formulario.querySelector('button');
+  let temporizador;
+  formulario.addEventListener('submit', async evento => {
+    evento.preventDefault();
+    // Primer clic: pide confirmación en el mismo botón. Segundo clic: elimina.
+    if (!boton.dataset.confirmar) {
+      boton.dataset.confirmar = '1';
+      boton.textContent = 'Confirmar: eliminar leídas';
+      boton.classList.add('danger');
+      temporizador = setTimeout(() => {
+        delete boton.dataset.confirmar;
+        boton.textContent = boton.dataset.texto;
+        boton.classList.remove('danger');
+      }, 4000);
+      return;
+    }
+    clearTimeout(temporizador);
+    try {
+      const datos = await enviar(formulario.action);
+      document.querySelectorAll('.note-card:not(.is-unread)').forEach(t => t.remove());
+      actualizarResumen(datos.no_leidas);
+      pintarContador(datos.no_leidas);
+      location.reload();
+    } catch (error) {
+      formulario.submit();
+    }
+  });
+}
+
 function iniciarLista() {
   document.querySelectorAll('form[data-ajax]').forEach(formulario => {
+    if (formulario.dataset.ajax === 'eliminar-leidas') {
+      iniciarEliminarLeidas(formulario);
+      return;
+    }
     formulario.addEventListener('submit', async evento => {
       evento.preventDefault();
       try {
         const datos = await enviar(formulario.action);
         if (formulario.dataset.ajax === 'una') {
           marcarTarjeta(formulario.closest('.note-card'));
+        } else if (formulario.dataset.ajax === 'eliminar') {
+          formulario.closest('.note-card').remove();
         } else {
           document.querySelectorAll('.note-card.is-unread').forEach(marcarTarjeta);
         }
         actualizarResumen(datos.no_leidas);
         pintarContador(datos.no_leidas);
+        if (formulario.dataset.ajax === 'eliminar') {
+          location.reload(); // refresca el resumen "X de Y" y el estado vacío
+          return;
+        }
         // Con el filtro "No leídas" la tarjeta ya no corresponde: se recarga para reflejarlo.
         if (new URLSearchParams(location.search).get('lectura') === 'no_leidas') location.reload();
       } catch (error) {

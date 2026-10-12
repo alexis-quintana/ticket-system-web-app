@@ -166,3 +166,25 @@
         padding: 16px;
     }
 }
+.notes-heading-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.notes-heading-actions .secondary-button {
+    flex-shrink: 0;
+    font-size: 13px;
+}
+
+.notes-heading-actions .secondary-button.danger,
+.row-action.danger {
+    color: #a02323;
+    border-color: #d9a3a3;
+}
+
+.note-actions form {
+    margin: 0;
+}
