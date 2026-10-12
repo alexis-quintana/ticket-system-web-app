@@ -4,8 +4,8 @@ El SQL y las reglas están en models/historial.py (clase Historial); aquí no ha
 """
 from datetime import datetime
 
-from flask import Blueprint, render_template, request, jsonify, session, abort
-from werkzeug.exceptions import BadRequest
+from flask import Blueprint, render_template, request, jsonify, session, abort, current_app
+from werkzeug.exceptions import BadRequest, HTTPException
 
 from models.historial import Historial, HistorialError, ESTADOS, PRIORIDADES
 from modules.auth import roles_required
@@ -43,11 +43,15 @@ def relativo(fecha):
 @roles_required("Administrador", "Técnico")
 def asignaciones():
     usuario = usuario_sesion()
+    # La primera vez (sin ?estado=) la bandeja muestra solo lo pendiente; "todos" quita el filtro
+    estado = request.args.get("estado", "pendientes")
     f = {"q": request.args.get("q", "").strip(),
-         "estado": request.args.get("estado", ""),
+         "estado": estado,
          "prioridad": request.args.get("prioridad", ""),
-         "asignado": request.args.get("asignado", "")}      # "sin" = sin técnico
-    tickets = Historial.bandeja(usuario, f["q"], f["estado"], f["prioridad"], f["asignado"])
+         "asignado": request.args.get("asignado", "")}      # "sin" = sin técnico, "inactivo"
+    if f["estado"] == "todos":
+        estado = ""
+    tickets = Historial.bandeja(usuario, f["q"], estado, f["prioridad"], f["asignado"])
     tecnicos = Historial.tecnicos(usuario["empresa_id"]) if usuario["rol"] == "Administrador" else []
     return render_template("historial/asignaciones.html", tickets=tickets, tecnicos=tecnicos,
                            estados=ESTADOS, prioridades=PRIORIDADES, f=f)
@@ -94,8 +98,10 @@ def quitar_asignacion(ticket_id):
                    request.form.get("comentario", ""))
 
 
+# Todos los roles: el Solicitante dueño puede confirmar o reabrir su ticket Resuelto.
+# El modelo decide qué estados permite a cada usuario (Historial.siguientes).
 @bp.route("/tickets/<int:ticket_id>/estado", methods=["POST"])
-@roles_required("Administrador", "Técnico")
+@roles_required()
 def cambiar_estado(ticket_id):
     return _accion(Historial.cambiar_estado, ticket_id, usuario_sesion(),
                    request.form.get("estado", ""), request.form.get("comentario", ""))
@@ -105,14 +111,16 @@ def cambiar_estado(ticket_id):
 # API REST del Módulo 3 (JSON). Mismo formato que /api/usuarios y /api/tickets: code, data, msge.
 # Se prueba en Postman con la sesión iniciada (POST /api/login).
 #
-#   GET    /api/asignaciones                      bandeja (filtros ?q=&estado=&prioridad=&asignado=sin)
+#   GET    /api/asignaciones                      bandeja (filtros ?q=&estado=&prioridad=&asignado=sin|inactivo)
+#                                                 estado: un estado, "pendientes" o vacío (todos)
 #   GET    /api/asignaciones/tecnicos             técnicos activos para asignar
 #   GET    /api/tickets/<id>/historial            línea de tiempo del ticket
 #   GET    /api/historial/<id>                    detalle de un evento
-#   POST   /api/tickets/<id>/asignacion           asignar      {"tecnico_id": 3, "comentario": "..."}
-#   PUT    /api/tickets/<id>/asignacion           reasignar    {"tecnico_id": 4, "comentario": "..."}
+#   POST   /api/tickets/<id>/asignacion           asignar (ticket SIN técnico)   {"tecnico_id": 3, "comentario": "..."}
+#   PUT    /api/tickets/<id>/asignacion           reasignar (ticket CON técnico) {"tecnico_id": 4, "comentario": "..."}
 #   DELETE /api/tickets/<id>/asignacion           quitar la asignación (comentario opcional)
 #   PATCH  /api/tickets/<id>/estado               cambiar estado {"estado": "En proceso", "comentario": "..."}
+#                                                 (el Solicitante dueño: solo desde Resuelto a Cerrado o En proceso)
 # =====================================================================
 def respuesta(code, data, msge, estado=200):
     rpta = dict()
@@ -141,12 +149,24 @@ def _error_historial(e):
     return respuesta(-1, None, str(e), e.estado)
 
 
+@bp.errorhandler(Exception)
+def _error_inesperado(e):
+    """Un error no previsto (por ejemplo, la base rechaza algo) en la API responde JSON, no una página HTML."""
+    if isinstance(e, HTTPException):          # 404, 405, etc. siguen su camino normal
+        return e
+    current_app.logger.exception("Error en el Módulo 3")
+    if request.path.startswith("/api/"):
+        return respuesta(-1, None, "Error en el servidor. Inténtalo de nuevo.", 500)
+    raise e
+
+
 @bp.route("/api/asignaciones")
 @roles_required("Administrador", "Técnico")
 def api_asignaciones():
     usuario = usuario_sesion()
     lista = list()
-    for t in Historial.bandeja(usuario, request.args.get("q", "").strip(), request.args.get("estado", ""),
+    estado = request.args.get("estado", "")
+    for t in Historial.bandeja(usuario, request.args.get("q", "").strip(), "" if estado == "todos" else estado,
                                request.args.get("prioridad", ""), request.args.get("asignado", "")):
         lista.append(Historial.ticket_a_diccionario(t))
     return respuesta(1, lista, "Lista de asignaciones generada correctamente en JSON.")
@@ -182,13 +202,19 @@ def api_asignacion(ticket_id):
         mensaje = Historial.quitar_asignacion(ticket_id, usuario, datos.get("comentario", ""))
     else:
         datos = datos_api()
+        # POST = primera asignación; PUT = reasignación (como dice la documentación de arriba)
+        actual = Historial.ticket(ticket_id, usuario)
+        if request.method == "POST" and actual["tecnico_id"]:
+            raise HistorialError("El ticket ya tiene técnico. Usa PUT para reasignarlo.", 409)
+        if request.method == "PUT" and not actual["tecnico_id"]:
+            raise HistorialError("El ticket no tiene técnico. Usa POST para asignarlo.", 409)
         mensaje = Historial.asignar(ticket_id, usuario, datos.get("tecnico_id", ""), datos.get("comentario", ""))
     t = Historial.ticket_a_diccionario(Historial.ticket(ticket_id, usuario))
     return respuesta(1, t, mensaje, 201 if request.method == "POST" else 200)
 
 
 @bp.route("/api/tickets/<int:ticket_id>/estado", methods=["PATCH"])
-@roles_required("Administrador", "Técnico")
+@roles_required()
 def api_estado(ticket_id):
     usuario = usuario_sesion()
     datos = datos_api()

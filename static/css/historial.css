@@ -1,9 +1,12 @@
 /* Módulo 3 — Asignación, estados e historial.
    Reutiliza global.css, components.css, tickets.css, ticket-detail.css y polish.css;
    aquí solo va lo específico del módulo. */
-/* La celda se mantiene como celda de tabla; el flex va en el div interno */
+/* La celda se mantiene como celda de tabla; el flex va en el div interno.
+   Los botones van siempre en una sola línea (igual que td.row-actions en Usuarios):
+   si la pantalla es angosta, la tabla se desplaza de lado dentro de .table-scroll. */
 .hist-celda-acciones {
-    min-width: 230px;
+    white-space: nowrap;
+    width: 1%;
 }
 
 .hist-asunto,
@@ -13,19 +16,20 @@
 }
 
 .hist-responsable {
-    min-width: 110px;
+    min-width: 120px;
 }
 
 .hist-acciones {
     display: flex;
-    flex-wrap: wrap;
-    gap: 4px 8px;
+    flex-wrap: nowrap;
+    gap: 8px;
     align-items: center;
 }
 
 .hist-acciones .row-action {
+    flex: none;
     text-decoration: none;
-    white-space: normal;
+    white-space: nowrap;
 }
 
 .hist-acciones .row-action:hover {
@@ -111,5 +115,67 @@
     .modal-footer .button,
     .modal-footer .secondary-button {
         flex: 1 1 auto;
+    }
+}
+
+/* Responsable desactivado (Módulo 1): avisa que hay que reasignar */
+.hist-inactivo {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #8a2c0d;
+    background: #fdecdf;
+    white-space: nowrap;
+}
+
+/* Dentro del modal de Reasignar: acceso a "Quitar asignación" (en rojo, como en la tabla y el detalle) */
+.hist-modal-quitar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.hist-modal-quitar[hidden] {
+    display: none;
+}
+
+body:has(.app-shell) .hist-modal-quitar .secondary-button.hist-quitar {
+    color: var(--color-danger);
+    border-color: #e3b4ba;
+}
+
+/* Barra de filtros: igual que Tickets y Usuarios, ocupa todo el ancho y termina en el borde
+   de la tabla. shell.js (combobox del grupo) fija un min-width en px a cada select al cargar;
+   aquí se anula SOLO en este formulario para que cada select llene su columna. */
+.hist-filtros > [class*="col-md"] {
+    min-width: 0;
+}
+
+.hist-filtros .cbo {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+}
+
+/* Bandeja: para que Ver historial, Asignar/Reasignar y Cambiar estado entren en una sola línea
+   en una laptop de 1366 px, esta tabla usa 12 px de relleno lateral (16 px en las demás) y la
+   primera columna mide como mínimo 180 px (el valor base de tickets.css). Mismo diseño de filas y botones. */
+@media screen {
+    .hist-tabla.ticket-table thead th {
+        padding-inline: 12px;
+    }
+
+    .hist-tabla.ticket-table td,
+    .hist-tabla.ticket-table tbody th {
+        padding-inline: 12px;
+    }
+
+    .hist-tabla.ticket-table tbody tr> :first-child {
+        min-width: 180px;
     }
 }

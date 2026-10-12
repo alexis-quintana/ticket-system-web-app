@@ -14,6 +14,7 @@ drop view if exists vw_tickets_sla;
 drop procedure if exists sp_crear_notificacion;
 drop procedure if exists sp_asignar_ticket;
 drop procedure if exists sp_cambiar_estado;
+drop procedure if exists sp_quitar_asignacion;
 drop procedure if exists sp_agregar_comentario;
 drop procedure if exists sp_marcar_leida;
 drop procedure if exists sp_marcar_todas_leidas;
