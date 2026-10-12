@@ -88,6 +88,9 @@
           menos</span></li>
       <li><span class="legend-dot legend-red"></span><span><strong>Vencido</strong> · el plazo ya pasó</span></li>
     </ul>
+    {% if usuario_actual.rol == 'Administrador' %}
+    <div><a class="secondary-button" href="{{ url_for('sla.lista') }}">Administrar plazos</a></div>
+    {% endif %}
   </div>
 
   <div class="settings-card">

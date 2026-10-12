@@ -15,17 +15,17 @@
 </div>
 
 <form method="get" class="row g-2 align-items-end">
-  <div class="col-md-4"><label class="form-label small fw-semibold">Buscar</label>
-    <input class="form-control" name="q" value="{{ f.q }}" placeholder="Nombre o correo">
+  <div class="col-md-4"><label class="form-label small fw-semibold" for="f-q">Buscar</label>
+    <input class="form-control" id="f-q" name="q" value="{{ f.q }}" placeholder="Nombre o correo">
   </div>
-  <div class="col-md-3"><label class="form-label small fw-semibold">Rol</label>
-    <select class="form-select" name="rol">
+  <div class="col-md-3"><label class="form-label small fw-semibold" for="f-rol">Rol</label>
+    <select class="form-select" id="f-rol" name="rol">
       <option value="">Todos los roles</option>
       {% for r in roles %}<option {{ 'selected' if f.rol==r }}>{{ r }}</option>{% endfor %}
     </select>
   </div>
-  <div class="col-md-3"><label class="form-label small fw-semibold">Estado</label>
-    <select class="form-select" name="activo">
+  <div class="col-md-3"><label class="form-label small fw-semibold" for="f-activo">Estado</label>
+    <select class="form-select" id="f-activo" name="activo">
       <option value="">Todos</option>
       <option value="1" {{ 'selected' if f.activo=='1' }}>Activo</option>
       <option value="0" {{ 'selected' if f.activo=='0' }}>Inactivo</option>
@@ -128,8 +128,8 @@
             autocomplete="new-password"><small></small>
           <div class="form-text" id="u-pass-help" hidden>Déjala vacía para conservar la actual.</div>
         </div>
-        <div class="form-field"><label class="form-label">Confirmar contraseña</label>
-          <input class="form-control" type="password" id="confirm-password" autocomplete="new-password"><small></small>
+        <div class="form-field"><label class="form-label" for="confirm-password">Confirmar contraseña</label>
+          <input class="form-control" type="password" id="confirm-password" name="confirm_password" autocomplete="new-password"><small></small>
         </div>
         <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="activo" id="u-activo"
             checked>

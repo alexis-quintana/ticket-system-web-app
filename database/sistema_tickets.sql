@@ -33,6 +33,7 @@ drop function if exists fn_fecha_limite_sla;
 drop function if exists fn_color_sla;
 drop function if exists fn_contar_no_leidas;
 
+drop table if exists sla_plazos;
 drop table if exists tokens_revocados;
 drop table if exists notificaciones;
 drop table if exists ticket_comentarios;
@@ -177,6 +178,19 @@ create table ticket_evidencias (
     index idx_evidencias_ticket (ticket_id),
     foreign key (ticket_id) references tickets (id) on delete cascade,
     foreign key (empresa_id) references empresas (id)
+) engine=innodb default charset=utf8mb4 collate=utf8mb4_general_ci;
+
+-- módulo 4: plazos de atención (sla) que cada empresa puede editar.
+-- si una empresa no define la prioridad, se usa el valor por defecto (alta 4 h, media 24 h, baja 72 h).
+create table sla_plazos (
+    id           int auto_increment primary key,
+    empresa_id   int not null,
+    prioridad    enum('Alta', 'Media', 'Baja') not null,
+    horas_limite int not null,
+    created_at   timestamp not null default current_timestamp,
+    updated_at   timestamp not null default current_timestamp on update current_timestamp,
+    unique key uq_sla_empresa_prioridad (empresa_id, prioridad),
+    foreign key (empresa_id) references empresas (id) on delete cascade
 ) engine=innodb default charset=utf8mb4 collate=utf8mb4_general_ci;
 
 -- módulo 3: asignación, estados e historial.

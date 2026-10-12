@@ -35,6 +35,7 @@
     {% endif %}
     {% if rol == 'Administrador' %}
     {{ opcion('/usuarios', 'Usuarios', ruta.startswith('/usuarios'), 'people') }}
+    {{ opcion('/sla', 'Plazos SLA', ruta.startswith('/sla'), 'stopwatch') }}
     {{ opcion('/reportes', 'Reportes', ruta.startswith('/reportes'), 'graph-up-arrow') }}
     {% endif %}
     {{ opcion('/configuracion', 'Configuración', ruta.startswith('/configuracion'), 'gear') }}

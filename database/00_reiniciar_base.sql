@@ -27,6 +27,7 @@ drop function if exists fn_fecha_limite_sla;
 drop function if exists fn_color_sla;
 drop function if exists fn_contar_no_leidas;
 
+drop table if exists sla_plazos;
 drop table if exists tokens_revocados;
 drop table if exists notificaciones;
 drop table if exists ticket_comentarios;
