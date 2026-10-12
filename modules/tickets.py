@@ -1,6 +1,6 @@
 
 from flask import (Blueprint, render_template, request, jsonify, session, send_from_directory,
-                   abort, redirect, url_for, flash)
+                   abort, redirect, url_for, flash, current_app)
 from werkzeug.exceptions import BadRequest
 from modules.auth import roles_required
 from modules.sla import plazos_empresa
@@ -110,7 +110,7 @@ def procesar_ticket():
     except TicketError as e:
         return jsonify(ok=False, mensaje=str(e)), e.estado
     except Exception as e:
-        print(repr(e))
+        current_app.logger.exception("Error en el Módulo 2")
         return jsonify(ok=False, mensaje="Error en el servidor. Inténtalo de nuevo."), 500
     return jsonify(ok=True, id=ticket_id,
                    mensaje="Ticket TK-" + str(ticket_id).zfill(4) + " registrado correctamente.")
@@ -125,7 +125,7 @@ def actualizar(ticket_id):
     except TicketError as e:
         return jsonify(ok=False, mensaje=str(e)), e.estado
     except Exception as e:
-        print(repr(e))
+        current_app.logger.exception("Error en el Módulo 2")
         return jsonify(ok=False, mensaje="Error en el servidor. Inténtalo de nuevo."), 500
     return jsonify(ok=True, id=ticket_id,
                    mensaje="Ticket TK-" + str(ticket_id).zfill(4) + " actualizado correctamente.")
