@@ -7,11 +7,58 @@ TIPOS = {
     "comentario": "Nuevo comentario",
 }
 
+COLUMNAS = "id, usuario_id, ticket_id, tipo, mensaje, leida, created_at"
 
-# Lógica de negocio del módulo 5; los avisos los crean los triggers de la base.
+
+# Una notificación de un usuario; los avisos los crean los triggers de la base.
 class Notificacion:
 
-    # Crea una notificación a mano; hoy los avisos los crean los triggers de la base, este método queda disponible por si se necesita.
+    # Constructor: cada objeto representa una fila de la tabla notificaciones.
+    def __init__(self, id, usuario_id, ticket_id, tipo, mensaje, leida, created_at):
+        self.id = id
+        self.usuario_id = usuario_id
+        self.ticket_id = ticket_id
+        self.tipo = tipo
+        self.mensaje = mensaje
+        self.leida = bool(leida)
+        self.created_at = created_at
+
+    # Convierte una fila de la base (diccionario) en un objeto Notificacion.
+    @staticmethod
+    def desde_fila(fila):
+        return Notificacion(fila["id"], fila["usuario_id"], fila["ticket_id"], fila["tipo"],
+                            fila["mensaje"], fila["leida"], fila["created_at"])
+
+    # Marca esta notificación como leída. Devuelve cuántas filas cambió (0 o 1).
+    def marcar_leida(self):
+        conexion = obtener_conexion()
+        try:
+            with conexion.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE notificaciones SET leida = 1 WHERE id = %s AND usuario_id = %s",
+                    (self.id, self.usuario_id))
+                filas = cursor.rowcount
+            conexion.commit()
+            self.leida = True
+            return filas
+        finally:
+            conexion.close()
+
+    # Elimina esta notificación. Devuelve cuántas filas se borraron (0 o 1).
+    def eliminar(self):
+        conexion = obtener_conexion()
+        try:
+            with conexion.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM notificaciones WHERE id = %s AND usuario_id = %s",
+                    (self.id, self.usuario_id))
+                filas = cursor.rowcount
+            conexion.commit()
+            return filas
+        finally:
+            conexion.close()
+
+    # Crea una notificación a mano y devuelve el objeto; hoy los avisos los crean los triggers.
     @staticmethod
     def crear(usuario_id, ticket_id, tipo, mensaje):
         if tipo not in TIPOS:
@@ -25,9 +72,9 @@ class Notificacion:
                     (usuario_id, ticket_id, tipo, mensaje))
                 nuevo_id = cursor.lastrowid
             conexion.commit()
-            return nuevo_id
         finally:
             conexion.close()
+        return Notificacion.obtener(nuevo_id, usuario_id)
 
     # Una notificación del usuario, o None si no existe o es de otra persona.
     @staticmethod
@@ -36,12 +83,12 @@ class Notificacion:
         try:
             with conexion.cursor() as cursor:
                 cursor.execute(
-                    "SELECT id, ticket_id, tipo, mensaje, leida, created_at "
-                    "FROM notificaciones WHERE id = %s AND usuario_id = %s",
+                    "SELECT " + COLUMNAS + " FROM notificaciones WHERE id = %s AND usuario_id = %s",
                     (notificacion_id, usuario_id))
-                return cursor.fetchone()
+                fila = cursor.fetchone()
         finally:
             conexion.close()
+        return Notificacion.desde_fila(fila) if fila else None
 
     @staticmethod
     def contar_no_leidas(usuario_id):
@@ -56,10 +103,10 @@ class Notificacion:
         finally:
             conexion.close()
 
+    # Lista de objetos Notificacion del usuario, con filtros opcionales.
     @staticmethod
     def listar(usuario_id, lectura="todas", tipo=""):
-        consulta = ("SELECT id, ticket_id, tipo, mensaje, leida, created_at "
-                    "FROM notificaciones WHERE usuario_id = %s")
+        consulta = "SELECT " + COLUMNAS + " FROM notificaciones WHERE usuario_id = %s"
         parametros = [usuario_id]
         if lectura == "no_leidas":
             consulta += " AND leida = 0"
@@ -73,9 +120,10 @@ class Notificacion:
         try:
             with conexion.cursor() as cursor:
                 cursor.execute(consulta, parametros)
-                return cursor.fetchall()
+                filas = cursor.fetchall()
         finally:
             conexion.close()
+        return [Notificacion.desde_fila(f) for f in filas]
 
     # Últimas notificaciones para el desplegable de la campana (no leídas primero).
     @staticmethod
@@ -84,28 +132,13 @@ class Notificacion:
         try:
             with conexion.cursor() as cursor:
                 cursor.execute(
-                    "SELECT id, ticket_id, tipo, mensaje, leida, created_at "
-                    "FROM notificaciones WHERE usuario_id = %s "
+                    "SELECT " + COLUMNAS + " FROM notificaciones WHERE usuario_id = %s "
                     "ORDER BY leida ASC, created_at DESC, id DESC LIMIT %s",
                     (usuario_id, limite))
-                return cursor.fetchall()
+                filas = cursor.fetchall()
         finally:
             conexion.close()
-
-    @staticmethod
-    def marcar_leida(notificacion_id, usuario_id):
-        conexion = obtener_conexion()
-        try:
-            with conexion.cursor() as cursor:
-                cursor.execute(
-                    "UPDATE notificaciones SET leida = 1 "
-                    "WHERE id = %s AND usuario_id = %s",
-                    (notificacion_id, usuario_id))
-                filas = cursor.rowcount
-            conexion.commit()
-            return filas
-        finally:
-            conexion.close()
+        return [Notificacion.desde_fila(f) for f in filas]
 
     @staticmethod
     def marcar_todas(usuario_id):
@@ -116,21 +149,6 @@ class Notificacion:
                     "UPDATE notificaciones SET leida = 1 "
                     "WHERE usuario_id = %s AND leida = 0",
                     (usuario_id,))
-                filas = cursor.rowcount
-            conexion.commit()
-            return filas
-        finally:
-            conexion.close()
-
-    # Borra una notificación del usuario. Devuelve cuántas filas se borraron (0 o 1).
-    @staticmethod
-    def eliminar(notificacion_id, usuario_id):
-        conexion = obtener_conexion()
-        try:
-            with conexion.cursor() as cursor:
-                cursor.execute(
-                    "DELETE FROM notificaciones WHERE id = %s AND usuario_id = %s",
-                    (notificacion_id, usuario_id))
                 filas = cursor.rowcount
             conexion.commit()
             return filas
