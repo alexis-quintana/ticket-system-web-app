@@ -1,13 +1,3 @@
-"""Módulo 5 (Quintana): notificaciones internas.
-
-Controlador: recibe la petición, llama a la clase `Notificacion` (models/notificacion.py) y responde.
-Tres partes:
-  1. Pantallas y acciones web (/notificaciones ...), que siguen funcionando sin JavaScript.
-  2. Rutas JSON que usa la campana (/notificaciones/contador y /notificaciones/recientes).
-  3. API (/api/notificaciones ...) con jsonify. Mismo formato de respuesta que el ejemplo de clase:
-     {"code": 1 o 0, "data": ..., "msge": "mensaje"}.
-Las notificaciones de asignación, cambio de estado y comentario las crean los triggers de la base de datos.
-"""
 from datetime import datetime
 
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
@@ -18,11 +8,9 @@ from modules.auth import roles_required
 bp = Blueprint("notificaciones", __name__)
 
 
-# ---------------------------------------------------------------------------
 # Ayudas
-# ---------------------------------------------------------------------------
+# Texto relativo corto: 'hace 5 min', 'hace 3 h', 'hace 2 d'.
 def _hace(fecha):
-    """Texto relativo corto: 'hace 5 min', 'hace 3 h', 'hace 2 d'."""
     segundos = max(0, int((datetime.now() - fecha).total_seconds()))
     if segundos < 60:
         return "hace un momento"
@@ -33,30 +21,33 @@ def _hace(fecha):
     return "hace %d d" % (segundos // 86400)
 
 
+# fetch() de la página avisa con este encabezado; el formulario normal sigue funcionando sin JS.
 def _quiere_json():
-    """fetch() de la página avisa con este encabezado; el formulario normal sigue funcionando sin JS."""
     return request.headers.get("X-Requested-With") == "fetch"
 
 
-def crearnotificacion(n):
-    """Fila de la base de datos -> diccionario listo para jsonify (igual que crearcancion() de la clase)."""
-    return {
-        "id": n["id"],
-        "ticket_id": n["ticket_id"],
-        "codigo_ticket": "TK-" + str(n["ticket_id"]).zfill(4),
-        "tipo": n["tipo"],
-        "titulo": TIPOS[n["tipo"]],
-        "mensaje": n["mensaje"],
-        "leida": bool(n["leida"]),
-        "creada": n["created_at"].isoformat(),
-        "hace": _hace(n["created_at"]),
-        "url": url_for("tickets.detalle", ticket_id=n["ticket_id"]),
-    }
+# Arma un diccionario que luego jsonify convierte en JSON.
+def crearnotificacion(p_id, p_ticket_id, p_tipo, p_mensaje, p_leida, p_creada):
+    notificacion = dict()
+    notificacion['id'] = p_id
+    notificacion['ticket_id'] = p_ticket_id
+    notificacion['codigo_ticket'] = "TK-" + str(p_ticket_id).zfill(4)
+    notificacion['tipo'] = p_tipo
+    notificacion['titulo'] = TIPOS[p_tipo]
+    notificacion['mensaje'] = p_mensaje
+    notificacion['leida'] = bool(p_leida)
+    notificacion['creada'] = p_creada.isoformat()
+    notificacion['hace'] = _hace(p_creada)
+    notificacion['url'] = url_for("tickets.detalle", ticket_id=p_ticket_id)
+    return notificacion
 
 
-# ---------------------------------------------------------------------------
+# Convierte una fila de la base de datos en el diccionario de la notificación.
+def desde_fila(n):
+    return crearnotificacion(n["id"], n["ticket_id"], n["tipo"], n["mensaje"], n["leida"], n["created_at"])
+
+
 # 1. Pantalla y acciones web
-# ---------------------------------------------------------------------------
 @bp.route("/notificaciones")
 @roles_required()
 def lista():
@@ -114,9 +105,7 @@ def eliminar_leidas():
     return redirect(url_for("notificaciones.lista"))
 
 
-# ---------------------------------------------------------------------------
-# 2. Rutas JSON de la campana (se consultan desde todas las pantallas)
-# ---------------------------------------------------------------------------
+# 2. Rutas JSON de la campana
 @bp.route("/notificaciones/contador")
 def contador():
     # Sin sesión responde 401 en JSON.
@@ -130,57 +119,45 @@ def recientes():
     if "usuario_id" not in session:
         return jsonify(no_leidas=0, items=[]), 401
     usuario_id = session["usuario_id"]
-    items = [crearnotificacion(n) for n in Notificacion.recientes(usuario_id)]
+    items = [desde_fila(n) for n in Notificacion.recientes(usuario_id)]
     return jsonify(no_leidas=Notificacion.contar_no_leidas(usuario_id), items=items)
 
 
-# ---------------------------------------------------------------------------
-# 3. API de notificaciones (JSON). Se prueba con Postman. Requiere sesión iniciada
-#    (primero se hace POST /login desde el navegador o Postman).
-#    Formato de respuesta, igual que /generandojson de la clase:
-#        code = 1 -> todo bien      code = 0 -> hubo un error (el detalle va en msge)
-#    GET    /api/notificaciones?lectura=&tipo=   listar las del usuario
-#    GET    /api/notificaciones/<id>             detalle de una
-# ---------------------------------------------------------------------------
-@bp.route("/api/notificaciones", methods=["GET"])
+# 3. API de notificaciones: GET con jsonify, se prueba en Postman con la sesión iniciada
+@bp.route('/api/notificaciones')
 @roles_required()
 def api_listar():
     rpta = dict()
+    listaNotificaciones = list()
     try:
-        usuario_id = session["usuario_id"]
-        lectura = request.args.get("lectura", "todas")
-        tipo = request.args.get("tipo", "")
-        if lectura not in ("todas", "leidas", "no_leidas"):
-            raise ValueError("El filtro lectura debe ser todas, leidas o no_leidas")
-        if tipo and tipo not in TIPOS:
-            raise ValueError("El filtro tipo debe ser: " + ", ".join(TIPOS))
-        listaNotificaciones = list()
-        for n in Notificacion.listar(usuario_id, lectura, tipo):
-            listaNotificaciones.append(crearnotificacion(n))
-        rpta["code"] = 1
-        rpta["data"] = listaNotificaciones
-        rpta["no_leidas"] = Notificacion.contar_no_leidas(usuario_id)
-        rpta["msge"] = "Lista de notificaciones generada correctamente en json"
+        for n in Notificacion.listar(session['usuario_id']):
+            listaNotificaciones.append(desde_fila(n))
+        rpta['code'] = 1
+        rpta['data'] = listaNotificaciones
+        rpta['msge'] = 'Lista de notificaciones generada correctamente en json'
     except Exception as e:
-        rpta["code"] = 0
-        rpta["data"] = None
-        rpta["msge"] = repr(e)
+        rpta['code'] = 0
+        rpta['data'] = None
+        rpta['msge'] = repr(e)
     return jsonify(rpta)
 
 
-@bp.route("/api/notificaciones/<int:notificacion_id>", methods=["GET"])
+@bp.route('/api/notificaciones/<strId>')
 @roles_required()
-def api_detalle(notificacion_id):
+def api_detalle(strId):
     rpta = dict()
     try:
-        n = Notificacion.obtener(notificacion_id, session["usuario_id"])
-        if not n:
-            raise LookupError("La notificación no existe")
-        rpta["code"] = 1
-        rpta["data"] = crearnotificacion(n)
-        rpta["msge"] = "Notificación encontrada"
+        n = Notificacion.obtener(int(strId), session['usuario_id'])
+        if n:
+            rpta['code'] = 1
+            rpta['data'] = desde_fila(n)
+            rpta['msge'] = 'Notificación encontrada'
+        else:
+            rpta['code'] = 0
+            rpta['data'] = None
+            rpta['msge'] = 'La notificación no existe'
     except Exception as e:
-        rpta["code"] = 0
-        rpta["data"] = None
-        rpta["msge"] = repr(e)
+        rpta['code'] = 0
+        rpta['data'] = None
+        rpta['msge'] = repr(e)
     return jsonify(rpta)

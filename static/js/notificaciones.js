@@ -31,7 +31,7 @@ async function actualizarContador() {
   }
 }
 
-/* ---------- Desplegable ---------- */
+// Desplegable
 function elemento(etiqueta, clase, texto) {
   const nodo = document.createElement(etiqueta);
   if (clase) nodo.className = clase;
@@ -130,7 +130,7 @@ function iniciarDesplegable() {
   });
 }
 
-/* ---------- Página /notificaciones ---------- */
+// Página /notificaciones
 function marcarTarjeta(tarjeta) {
   tarjeta.classList.remove('is-unread');
   const estado = tarjeta.querySelector('.note-status');

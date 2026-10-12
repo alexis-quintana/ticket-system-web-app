@@ -2,11 +2,6 @@
     max-width: 1100px;
 }
 
-.notifications-page>a {
-    font-size: 13px;
-    color: var(--color-muted);
-}
-
 .notes-heading {
     display: flex;
     align-items: center;
@@ -48,14 +43,9 @@
     max-width: 100%;
 }
 
-#notes-summary,
-#notes-feedback {
+#notes-summary {
     font-size: 13px;
     color: var(--color-muted);
-}
-
-#notes-feedback:empty {
-    display: none;
 }
 
 .notes-list {
@@ -166,6 +156,7 @@
         padding: 16px;
     }
 }
+
 .notes-heading-actions {
     display: flex;
     flex-wrap: wrap;

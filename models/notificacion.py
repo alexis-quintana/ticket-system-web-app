@@ -8,9 +8,10 @@ TIPOS = {
 }
 
 
+# Lógica de negocio del módulo 5; los avisos los crean los triggers de la base.
 class Notificacion:
-    """Lógica de negocio del módulo 5. Los demás módulos solo llaman a crear()."""
 
+    # Crea una notificación a mano; hoy los avisos los crean los triggers de la base, este método queda disponible por si se necesita.
     @staticmethod
     def crear(usuario_id, ticket_id, tipo, mensaje):
         if tipo not in TIPOS:
@@ -28,9 +29,9 @@ class Notificacion:
         finally:
             conexion.close()
 
+    # Una notificación del usuario, o None si no existe o es de otra persona.
     @staticmethod
     def obtener(notificacion_id, usuario_id):
-        """Una notificación del usuario, o None si no existe o es de otra persona."""
         conexion = obtener_conexion()
         try:
             with conexion.cursor() as cursor:
@@ -76,9 +77,9 @@ class Notificacion:
         finally:
             conexion.close()
 
+    # Últimas notificaciones para el desplegable de la campana (no leídas primero).
     @staticmethod
     def recientes(usuario_id, limite=6):
-        """Últimas notificaciones para el desplegable de la campana (no leídas primero)."""
         conexion = obtener_conexion()
         try:
             with conexion.cursor() as cursor:
@@ -121,9 +122,9 @@ class Notificacion:
         finally:
             conexion.close()
 
+    # Borra una notificación del usuario. Devuelve cuántas filas se borraron (0 o 1).
     @staticmethod
     def eliminar(notificacion_id, usuario_id):
-        """Borra una notificación del usuario. Devuelve cuántas filas se borraron (0 o 1)."""
         conexion = obtener_conexion()
         try:
             with conexion.cursor() as cursor:
@@ -136,9 +137,9 @@ class Notificacion:
         finally:
             conexion.close()
 
+    # Borra todas las notificaciones ya leídas del usuario. Devuelve cuántas fueron.
     @staticmethod
     def eliminar_leidas(usuario_id):
-        """Borra todas las notificaciones ya leídas del usuario. Devuelve cuántas fueron."""
         conexion = obtener_conexion()
         try:
             with conexion.cursor() as cursor:
