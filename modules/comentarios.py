@@ -1,9 +1,6 @@
-"""Módulo 5 (Quintana): comentarios del ticket.
-
-El comentario se guarda en `ticket_comentarios`; el trigger `trg_comentarios_ai` crea la
-notificación para el solicitante y el técnico asignado (menos para quien comenta).
-Se muestra en el detalle con {% include "historial/_comentarios.html" %}.
-"""
+# Módulo 5 (Quintana): comentarios del ticket.
+# El comentario se guarda en ticket_comentarios; el trigger trg_comentarios_ai avisa al solicitante y al técnico.
+# Se muestra en el detalle con {% include "historial/_comentarios.html" %}.
 from flask import Blueprint, abort, flash, redirect, session, request, url_for
 
 from db import obtener_conexion
@@ -14,8 +11,8 @@ bp = Blueprint("comentarios", __name__)
 MAX_COMENTARIO = 1000
 
 
+# Ticket de la empresa activa que el usuario puede ver, o None.
 def _ticket_visible(cur, ticket_id):
-    """Ticket de la empresa activa que el usuario puede ver, o None."""
     cur.execute("SELECT id, estado, solicitante_id, tecnico_id FROM tickets WHERE id=%s AND empresa_id=%s",
                 (ticket_id, session["empresa_id"]))
     t = cur.fetchone()
@@ -26,8 +23,8 @@ def _ticket_visible(cur, ticket_id):
     return t
 
 
+# Administrador, solicitante dueño o técnico asignado; el ticket cerrado ya no admite cambios.
 def _puede_comentar(t):
-    """Administrador, solicitante dueño o técnico asignado; el ticket cerrado ya no admite cambios."""
     if t["estado"] == "Cerrado":
         return False
     if session["rol"] == "Administrador":
@@ -35,9 +32,9 @@ def _puede_comentar(t):
     return session["usuario_id"] in (t["solicitante_id"], t["tecnico_id"])
 
 
+# Lista de comentarios del ticket (más antiguos primero) para la plantilla del detalle.
 @bp.app_template_global("comentarios_de")
 def comentarios_de(ticket_id):
-    """Lista de comentarios del ticket (más antiguos primero) para la plantilla del detalle."""
     con = obtener_conexion()
     try:
         with con.cursor() as cur:
