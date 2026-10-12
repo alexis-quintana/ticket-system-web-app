@@ -26,7 +26,7 @@ def _quiere_json():
     return request.headers.get("X-Requested-With") == "fetch"
 
 
-# Arma un diccionario que luego jsonify convierte en JSON.
+# Igual que crearcancion() de la clase: arma un diccionario que luego jsonify convierte en JSON.
 def crearnotificacion(p_id, p_ticket_id, p_tipo, p_mensaje, p_leida, p_creada):
     notificacion = dict()
     notificacion['id'] = p_id
@@ -42,9 +42,9 @@ def crearnotificacion(p_id, p_ticket_id, p_tipo, p_mensaje, p_leida, p_creada):
     return notificacion
 
 
-# Convierte una fila de la base de datos en el diccionario de la notificación.
-def desde_fila(n):
-    return crearnotificacion(n["id"], n["ticket_id"], n["tipo"], n["mensaje"], n["leida"], n["created_at"])
+# Convierte un objeto Notificacion en el diccionario que devuelve jsonify.
+def a_diccionario(n):
+    return crearnotificacion(n.id, n.ticket_id, n.tipo, n.mensaje, n.leida, n.created_at)
 
 
 # 1. Pantalla y acciones web
@@ -60,7 +60,7 @@ def lista():
         "notificaciones/lista.html",
         notificaciones=mostradas,
         total=len(todas),
-        no_leidas=sum(1 for n in todas if not n["leida"]),
+        no_leidas=sum(1 for n in todas if not n.leida),
         tipos=TIPOS,
         lectura=lectura,
         tipo=tipo)
@@ -69,7 +69,9 @@ def lista():
 @bp.route("/notificaciones/<int:notificacion_id>/leer", methods=["POST"])
 @roles_required()
 def marcar_leida(notificacion_id):
-    Notificacion.marcar_leida(notificacion_id, session["usuario_id"])
+    n = Notificacion.obtener(notificacion_id, session["usuario_id"])
+    if n:
+        n.marcar_leida()
     if _quiere_json():
         return jsonify(ok=True, no_leidas=Notificacion.contar_no_leidas(session["usuario_id"]))
     return redirect(url_for("notificaciones.lista"))
@@ -87,7 +89,8 @@ def marcar_todas():
 @bp.route("/notificaciones/<int:notificacion_id>/eliminar", methods=["POST"])
 @roles_required()
 def eliminar(notificacion_id):
-    borradas = Notificacion.eliminar(notificacion_id, session["usuario_id"])
+    n = Notificacion.obtener(notificacion_id, session["usuario_id"])
+    borradas = n.eliminar() if n else 0
     if _quiere_json():
         return jsonify(ok=bool(borradas), no_leidas=Notificacion.contar_no_leidas(session["usuario_id"]))
     flash("Notificación eliminada." if borradas else "La notificación ya no existe.", "success" if borradas else "info")
@@ -119,7 +122,7 @@ def recientes():
     if "usuario_id" not in session:
         return jsonify(no_leidas=0, items=[]), 401
     usuario_id = session["usuario_id"]
-    items = [desde_fila(n) for n in Notificacion.recientes(usuario_id)]
+    items = [a_diccionario(n) for n in Notificacion.recientes(usuario_id)]
     return jsonify(no_leidas=Notificacion.contar_no_leidas(usuario_id), items=items)
 
 
@@ -131,7 +134,7 @@ def api_listar():
     listaNotificaciones = list()
     try:
         for n in Notificacion.listar(session['usuario_id']):
-            listaNotificaciones.append(desde_fila(n))
+            listaNotificaciones.append(a_diccionario(n))
         rpta['code'] = 1
         rpta['data'] = listaNotificaciones
         rpta['msge'] = 'Lista de notificaciones generada correctamente en json'
@@ -150,7 +153,7 @@ def api_detalle(strId):
         n = Notificacion.obtener(int(strId), session['usuario_id'])
         if n:
             rpta['code'] = 1
-            rpta['data'] = desde_fila(n)
+            rpta['data'] = a_diccionario(n)
             rpta['msge'] = 'Notificación encontrada'
         else:
             rpta['code'] = 0
