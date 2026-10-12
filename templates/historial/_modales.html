@@ -49,6 +49,11 @@
             {% for x in tecnicos %}<option value="{{ x.id }}">{{ x.nombre }}</option>{% endfor %}
           </select><small></small>
         </div>
+        {# Solo aparece al reasignar un ticket Abierto desde la bandeja (lo activa historial.js) #}
+        <div class="hist-modal-quitar" id="asignar-quitar-zona" hidden>
+          <span class="detail-muted">¿Debe quedar sin técnico?</span>
+          <button type="button" class="secondary-button hist-quitar" id="asignar-quitar">Quitar asignación</button>
+        </div>
         <div class="form-field"><label class="form-label" for="asignar-comentario">Comentario (opcional)</label>
           <textarea class="form-control" id="asignar-comentario" name="comentario" rows="3" maxlength="1000"
             placeholder="Indicaciones para el técnico"></textarea>

@@ -8,17 +8,19 @@ create table ticket_historial (
     empresa_id      int not null,
     ticket_id       int not null,
     usuario_id      int not null,
-    tipo            varchar(20) not null,
-    estado_anterior varchar(20) null,
-    estado_nuevo    varchar(20) null,
-    tecnico_id      int null,
+    tipo            enum('Asignación', 'Desasignación', 'Cambio de estado', 'Cambio de prioridad') not null,
+    estado_anterior enum('Abierto', 'En proceso', 'Resuelto', 'Cerrado') null,
+    estado_nuevo    enum('Abierto', 'En proceso', 'Resuelto', 'Cerrado') null,
+    tecnico_id          int null,   -- técnico a cargo DESPUÉS del evento
+    tecnico_anterior_id int null,   -- técnico que lo tenía ANTES (reasignación o desasignación)
     comentario      text not null,
     created_at      timestamp not null default current_timestamp,
     index idx_historial_ticket (ticket_id, created_at),
     foreign key (empresa_id) references empresas (id),
     foreign key (ticket_id) references tickets (id) on delete cascade,
     foreign key (usuario_id) references usuarios (id),
-    foreign key (tecnico_id) references usuarios (id)
+    foreign key (tecnico_id) references usuarios (id),
+    foreign key (tecnico_anterior_id) references usuarios (id)
 ) engine=innodb default charset=utf8mb4 collate=utf8mb4_general_ci;
 
 -- comentarios libres sobre un ticket; generan notificación de tipo comentario

@@ -75,8 +75,9 @@ begin
         signal sqlstate '45000' set message_text = 'El técnico no es válido para esta empresa';
     end if;
 
-    if v_estado = 'Cerrado' then
-        signal sqlstate '45000' set message_text = 'Un ticket cerrado no se puede reasignar';
+    -- igual que ASIGNABLES en models/historial.py
+    if v_estado not in ('Abierto', 'En proceso') then
+        signal sqlstate '45000' set message_text = 'Solo se puede asignar un ticket Abierto o En proceso';
     end if;
 
     if v_tecnico_actual <=> p_tecnico_id then
@@ -88,8 +89,71 @@ begin
 
     update tickets set tecnico_id = p_tecnico_id where id = p_ticket_id;
 
-    insert into ticket_historial (empresa_id, ticket_id, usuario_id, tipo, estado_anterior, estado_nuevo, tecnico_id, comentario)
-    values (v_empresa, p_ticket_id, p_admin_id, 'Asignación', v_estado, v_estado, p_tecnico_id, p_comentario);
+    insert into ticket_historial (empresa_id, ticket_id, usuario_id, tipo, estado_anterior, estado_nuevo,
+                                  tecnico_id, tecnico_anterior_id, comentario)
+    values (v_empresa, p_ticket_id, p_admin_id, 'Asignación', v_estado, v_estado,
+            p_tecnico_id, v_tecnico_actual, p_comentario);
+
+    commit;
+end$$
+
+-- módulo 3: quita el técnico de un ticket Abierto (el "eliminar" del CRUD; el historial no se borra).
+-- ejemplo: call sp_quitar_asignacion(1, 1, 'Se asignó por error');
+create procedure sp_quitar_asignacion(
+    in p_ticket_id int,
+    in p_admin_id int,
+    in p_comentario text
+)
+begin
+    declare v_empresa int;
+    declare v_estado varchar(20);
+    declare v_tecnico_actual int;
+    declare v_es_admin int;
+
+    declare exit handler for sqlexception
+    begin
+        rollback;
+        resignal;
+    end;
+
+    start transaction;
+
+    select empresa_id, estado, tecnico_id
+      into v_empresa, v_estado, v_tecnico_actual
+      from tickets
+     where id = p_ticket_id
+       for update;
+
+    if v_empresa is null then
+        signal sqlstate '45000' set message_text = 'El ticket no existe';
+    end if;
+
+    select count(*) into v_es_admin
+      from usuarios u
+      join roles r on r.id = u.rol_id
+     where u.id = p_admin_id and (u.empresa_id = v_empresa or u.es_superadmin = 1) and u.activo = 1 and r.nombre = 'Administrador';
+
+    if v_es_admin = 0 then
+        signal sqlstate '45000' set message_text = 'Solo un administrador de la empresa puede quitar la asignación';
+    end if;
+
+    if v_tecnico_actual is null then
+        signal sqlstate '45000' set message_text = 'El ticket no tiene un técnico asignado';
+    end if;
+
+    if v_estado <> 'Abierto' then
+        signal sqlstate '45000' set message_text = 'Solo se puede quitar la asignación de un ticket Abierto';
+    end if;
+
+    set p_comentario = coalesce(nullif(trim(p_comentario), ''),
+                                concat('Se quitó la asignación a ', fn_nombre_usuario(v_tecnico_actual), '.'));
+
+    update tickets set tecnico_id = null where id = p_ticket_id;
+
+    insert into ticket_historial (empresa_id, ticket_id, usuario_id, tipo, estado_anterior, estado_nuevo,
+                                  tecnico_id, tecnico_anterior_id, comentario)
+    values (v_empresa, p_ticket_id, p_admin_id, 'Desasignación', v_estado, v_estado,
+            null, v_tecnico_actual, p_comentario);
 
     commit;
 end$$
@@ -97,6 +161,8 @@ end$$
 -- módulo 3: cambia el estado de un ticket con comentario obligatorio.
 -- lo puede hacer un administrador o el técnico asignado.
 -- flujo permitido: Abierto -> En proceso -> Resuelto -> Cerrado (y Resuelto -> En proceso al reabrir).
+-- el solicitante dueño solo puede, desde Resuelto, confirmar (Cerrado) o reabrir (En proceso).
+-- (mismas reglas que TRANSICIONES y TRANSICIONES_SOLICITANTE en models/historial.py)
 -- ejemplo: call sp_cambiar_estado(3, 2, 'Resuelto', 'Se reemplazó el cable de red');
 create procedure sp_cambiar_estado(
     in p_ticket_id int,
@@ -108,6 +174,7 @@ begin
     declare v_empresa int;
     declare v_estado varchar(20);
     declare v_tecnico int;
+    declare v_solicitante int;
     declare v_rol varchar(30);
 
     declare exit handler for sqlexception
@@ -124,8 +191,8 @@ begin
 
     start transaction;
 
-    select empresa_id, estado, tecnico_id
-      into v_empresa, v_estado, v_tecnico
+    select empresa_id, estado, tecnico_id, solicitante_id
+      into v_empresa, v_estado, v_tecnico, v_solicitante
       from tickets
      where id = p_ticket_id
        for update;
@@ -139,17 +206,24 @@ begin
       join roles r on r.id = u.rol_id
      where u.id = p_usuario_id and (u.empresa_id = v_empresa or u.es_superadmin = 1) and u.activo = 1;
 
-    if v_rol is null or not (v_rol = 'Administrador' or (v_rol = 'Técnico' and v_tecnico = p_usuario_id)) then
-        signal sqlstate '45000' set message_text = 'Solo el administrador o el técnico asignado puede cambiar el estado';
+    if v_rol is null
+       or not (v_rol = 'Administrador'
+               or (v_rol = 'Técnico' and v_tecnico = p_usuario_id)
+               or (v_rol = 'Solicitante' and v_solicitante = p_usuario_id)) then
+        signal sqlstate '45000' set message_text = 'No tienes permiso para cambiar el estado de este ticket';
     end if;
 
     if v_tecnico is null then
         signal sqlstate '45000' set message_text = 'Asigna un técnico antes de cambiar el estado';
     end if;
 
-    if not ((v_estado = 'Abierto' and p_nuevo_estado = 'En proceso')
-         or (v_estado = 'En proceso' and p_nuevo_estado = 'Resuelto')
-         or (v_estado = 'Resuelto' and p_nuevo_estado in ('Cerrado', 'En proceso'))) then
+    if v_rol = 'Solicitante' then
+        if not (v_estado = 'Resuelto' and p_nuevo_estado in ('Cerrado', 'En proceso')) then
+            signal sqlstate '45000' set message_text = 'Solo puedes confirmar o reabrir tu ticket cuando está Resuelto';
+        end if;
+    elseif not ((v_estado = 'Abierto' and p_nuevo_estado = 'En proceso')
+             or (v_estado = 'En proceso' and p_nuevo_estado = 'Resuelto')
+             or (v_estado = 'Resuelto' and p_nuevo_estado in ('Cerrado', 'En proceso'))) then
         signal sqlstate '45000' set message_text = 'Cambio de estado no permitido';
     end if;
 

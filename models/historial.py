@@ -4,28 +4,34 @@ Aquí está todo el SQL del módulo; la ruta (modules/historial.py) solo recibe 
 y decide qué responder. El historial es la auditoría del ticket: se agrega, nunca se borra.
 """
 from db import obtener_conexion
-from modules.sla import calcular_sla   # Módulo 4 (Ordoñez): semáforo del ticket
+from modules.sla import calcular_sla        # Módulo 4 (Ordoñez): semáforo del ticket
+from models.ticket import ESTADOS, PRIORIDADES   # Módulo 2 (Timaná): una sola lista en Python
 
-ESTADOS = ("Abierto", "En proceso", "Resuelto", "Cerrado")
-PRIORIDADES = ("Alta", "Media", "Baja")
-# Transiciones permitidas (se puede cambiar aquí si el docente pide otra regla)
+# Transiciones del Administrador y del técnico asignado (se cambia aquí si el docente pide otra regla)
 TRANSICIONES = {
     "Abierto":    ("En proceso",),
     "En proceso": ("Resuelto",),
     "Resuelto":   ("Cerrado", "En proceso"),   # En proceso = reapertura
     "Cerrado":    (),
 }
-# Tipos de evento que se guardan en ticket_historial.tipo
-TIPOS = ("Asignación", "Desasignación", "Cambio de estado")
+# El Solicitante dueño del ticket confirma la solución (Cerrado) o la rechaza (vuelve a En proceso)
+TRANSICIONES_SOLICITANTE = {
+    "Resuelto": ("Cerrado", "En proceso"),
+}
+# Solo se asigna o reasigna mientras el ticket está pendiente
+ASIGNABLES = ("Abierto", "En proceso")
+# Tipos de evento que se guardan en ticket_historial.tipo (mismos valores que el ENUM de la tabla)
+TIPOS = ("Asignación", "Desasignación", "Cambio de estado", "Cambio de prioridad")
 SLA_CSS = {"verde": "green", "amarillo": "yellow", "rojo": "red"}
 MAX_COMENTARIO = 1000
 
-# SELECT base del ticket con nombres de solicitante y técnico (siempre filtrado por empresa)
+# SELECT base del ticket con nombres de solicitante y técnico (siempre filtrado por empresa).
+# tecnico_activo = 0 avisa que el responsable fue desactivado y hay que reasignar.
 SQL_TICKET = (
     "SELECT t.id, t.asunto, t.descripcion, t.prioridad, t.estado, t.created_at, t.resuelto_en, "
     "t.solicitante_id, t.tecnico_id, c.nombre AS categoria, "
     "CONCAT(ps.nombres, ' ', ps.apellidos) AS solicitante, "
-    "CONCAT(pt.nombres, ' ', pt.apellidos) AS tecnico "
+    "CONCAT(pt.nombres, ' ', pt.apellidos) AS tecnico, ut.activo AS tecnico_activo "
     "FROM tickets t "
     "LEFT JOIN categorias c ON c.id = t.categoria_id "
     "LEFT JOIN usuarios us ON us.id = t.solicitante_id "
@@ -34,15 +40,18 @@ SQL_TICKET = (
     "LEFT JOIN personas pt ON pt.id = ut.persona_id "
 )
 
-# SELECT base de un evento del historial con el nombre de quien lo hizo y del técnico
+# SELECT base de un evento del historial con el nombre de quien lo hizo y de los técnicos.
+# tecnico = quién queda a cargo DESPUÉS del evento; tecnico_anterior = quién estaba ANTES.
 SQL_EVENTO = (
     "SELECT h.id, h.ticket_id, h.tipo, h.estado_anterior, h.estado_nuevo, h.tecnico_id, "
-    "h.comentario, h.created_at, "
+    "h.tecnico_anterior_id, h.comentario, h.created_at, "
     "CONCAT(pa.nombres, ' ', pa.apellidos) AS autor, "
-    "CONCAT(pt.nombres, ' ', pt.apellidos) AS tecnico "
+    "CONCAT(pt.nombres, ' ', pt.apellidos) AS tecnico, "
+    "CONCAT(pn.nombres, ' ', pn.apellidos) AS tecnico_anterior "
     "FROM ticket_historial h "
     "JOIN usuarios ua ON ua.id = h.usuario_id JOIN personas pa ON pa.id = ua.persona_id "
     "LEFT JOIN usuarios ut ON ut.id = h.tecnico_id LEFT JOIN personas pt ON pt.id = ut.persona_id "
+    "LEFT JOIN usuarios un ON un.id = h.tecnico_anterior_id LEFT JOIN personas pn ON pn.id = un.persona_id "
 )
 
 
@@ -63,7 +72,7 @@ class Historial:
 
     # Constructor: cada objeto representa un movimiento del ticket.
     def __init__(self, id, ticket_id, tipo, estado_anterior, estado_nuevo, tecnico_id,
-                 comentario, created_at, autor, tecnico):
+                 comentario, created_at, autor, tecnico, tecnico_anterior_id=None, tecnico_anterior=None):
         self.id = id
         self.ticket_id = ticket_id
         self.tipo = tipo                          # Asignación, Desasignación o Cambio de estado
@@ -73,14 +82,17 @@ class Historial:
         self.comentario = comentario
         self.created_at = created_at
         self.autor = autor                        # quién hizo el cambio
-        self.tecnico = tecnico                    # técnico asignado o al que se le quitó
+        self.tecnico = tecnico                    # técnico a cargo después del evento
+        self.tecnico_anterior_id = tecnico_anterior_id
+        self.tecnico_anterior = tecnico_anterior  # técnico que tenía el ticket antes (reasignar/quitar)
 
     # Convierte una fila de la base (diccionario) en un objeto Historial.
     @staticmethod
     def desde_fila(fila):
         return Historial(fila["id"], fila["ticket_id"], fila["tipo"], fila["estado_anterior"],
                          fila["estado_nuevo"], fila["tecnico_id"], fila["comentario"],
-                         fila["created_at"], fila["autor"], fila["tecnico"])
+                         fila["created_at"], fila["autor"], fila["tecnico"],
+                         fila["tecnico_anterior_id"], fila["tecnico_anterior"])
 
     # Datos del evento listos para jsonify.
     def a_diccionario(self):
@@ -93,6 +105,8 @@ class Historial:
         evento["estado_nuevo"] = self.estado_nuevo
         evento["tecnico_id"] = self.tecnico_id
         evento["tecnico"] = self.tecnico
+        evento["tecnico_anterior_id"] = self.tecnico_anterior_id
+        evento["tecnico_anterior"] = self.tecnico_anterior
         evento["autor"] = self.autor
         evento["comentario"] = self.comentario
         evento["created_at"] = _fecha(self.created_at)
@@ -110,6 +124,22 @@ class Historial:
         return rol == "Administrador" or (rol == "Técnico" and t["tecnico_id"] == usuario["usuario_id"])
 
     @staticmethod
+    def siguientes(t, usuario):
+        """Estados a los que ESTE usuario puede mover el ticket (vacío = no puede cambiarlo)."""
+        if usuario["rol"] == "Solicitante":
+            if t["solicitante_id"] != usuario["usuario_id"]:
+                return ()
+            return TRANSICIONES_SOLICITANTE.get(t["estado"], ())
+        if not Historial.puede_cambiar_estado(t, usuario):
+            return ()
+        return TRANSICIONES.get(t["estado"], ())
+
+    @staticmethod
+    def puede_asignar(t, usuario):
+        """Solo el Administrador, y solo mientras el ticket está pendiente (Abierto o En proceso)."""
+        return usuario["rol"] == "Administrador" and t["estado"] in ASIGNABLES
+
+    @staticmethod
     def puede_quitar_asignacion(t, usuario):
         """Solo el Administrador, y solo si el técnico aún no empezó (ticket Abierto)."""
         return usuario["rol"] == "Administrador" and bool(t["tecnico_id"]) and t["estado"] == "Abierto"
@@ -119,9 +149,13 @@ class Historial:
         """Agrega al ticket el semáforo SLA y lo que el usuario puede hacer con él."""
         s = calcular_sla(t["prioridad"], t["created_at"], t["estado"], t["resuelto_en"])
         t["sla"] = {"clase": SLA_CSS[s["color"]], "texto": s["texto"]}
-        t["siguientes"] = TRANSICIONES.get(t["estado"], ())
-        t["puede_estado"] = Historial.puede_cambiar_estado(t, usuario) and bool(t["siguientes"])
+        t["siguientes"] = Historial.siguientes(t, usuario)
+        t["puede_estado"] = bool(t["tecnico_id"]) and bool(t["siguientes"])
+        t["puede_asignar"] = Historial.puede_asignar(t, usuario)
         t["puede_quitar"] = Historial.puede_quitar_asignacion(t, usuario)
+        # el responsable fue desactivado (Módulo 1) y el ticket sigue pendiente: hay que reasignar
+        t["tecnico_inactivo"] = (bool(t["tecnico_id"]) and not t["tecnico_activo"]
+                                 and t["estado"] in ASIGNABLES)
         return t
 
     @staticmethod
@@ -130,8 +164,11 @@ class Historial:
         return dict(id=t["id"], codigo="TK-" + str(t["id"]).zfill(4), asunto=t["asunto"],
                     prioridad=t["prioridad"], estado=t["estado"], categoria=t["categoria"],
                     solicitante_id=t["solicitante_id"], solicitante=t["solicitante"],
-                    tecnico_id=t["tecnico_id"], tecnico=t["tecnico"], sla=t["sla"],
-                    siguientes=list(t["siguientes"]), created_at=_fecha(t["created_at"]),
+                    tecnico_id=t["tecnico_id"], tecnico=t["tecnico"],
+                    tecnico_inactivo=t["tecnico_inactivo"], sla=t["sla"],
+                    siguientes=list(t["siguientes"]), puede_estado=t["puede_estado"],
+                    puede_asignar=t["puede_asignar"], puede_quitar=t["puede_quitar"],
+                    created_at=_fecha(t["created_at"]),
                     resuelto_en=_fecha(t["resuelto_en"]))
 
     # ---------- Consultas ----------
@@ -156,7 +193,9 @@ class Historial:
 
     @staticmethod
     def bandeja(usuario, q="", estado="", prioridad="", asignado=""):
-        """Tickets de la bandeja de asignación. El Técnico solo ve los que tiene asignados."""
+        """Tickets de la bandeja de asignación. El Técnico solo ve los que tiene asignados.
+        estado: un estado, "pendientes" (Abierto + En proceso) o vacío (todos).
+        asignado: "sin" = sin técnico, "inactivo" = su técnico fue desactivado."""
         sql = SQL_TICKET + "WHERE t.empresa_id=%s"
         params = [usuario["empresa_id"]]
         if usuario["rol"] == "Técnico":
@@ -169,12 +208,20 @@ class Historial:
         if estado in ESTADOS:
             sql += " AND t.estado=%s"
             params.append(estado)
+        elif estado == "pendientes":
+            sql += " AND t.estado IN ('Abierto','En proceso')"
         if prioridad in PRIORIDADES:
             sql += " AND t.prioridad=%s"
             params.append(prioridad)
         if asignado == "sin":                     # "sin" = sin técnico
             sql += " AND t.tecnico_id IS NULL"
-        sql += " ORDER BY FIELD(t.prioridad,'Alta','Media','Baja'), t.created_at"
+        elif asignado == "inactivo":              # pendientes cuyo técnico fue desactivado
+            sql += (" AND t.tecnico_id IS NOT NULL AND ut.activo = 0 "
+                    "AND t.estado IN ('Abierto','En proceso')")
+        # Primero lo pendiente, luego Resuelto y al final Cerrado; dentro de cada grupo,
+        # lo que vence antes. fn_fecha_limite_sla es del Módulo 4 (no se repite la regla 4/24/72 h).
+        sql += (" ORDER BY t.estado IN ('Resuelto','Cerrado'), t.estado = 'Cerrado', "
+                "fn_fecha_limite_sla(t.prioridad, t.created_at), t.id")
         con = obtener_conexion()
         try:
             with con.cursor() as cur:
@@ -239,12 +286,27 @@ class Historial:
         return t
 
     @staticmethod
-    def _registrar(cur, usuario, ticket_id, tipo, anterior, nuevo, tecnico_id, comentario):
+    def _registrar(cur, usuario, ticket_id, tipo, anterior, nuevo, tecnico_id, comentario,
+                   tecnico_anterior_id=None):
+        """Inserta un evento. tecnico_id = quién queda a cargo; tecnico_anterior_id = quién estaba."""
         cur.execute("INSERT INTO ticket_historial (empresa_id, ticket_id, usuario_id, tipo, "
-                    "estado_anterior, estado_nuevo, tecnico_id, comentario) "
-                    "VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+                    "estado_anterior, estado_nuevo, tecnico_id, tecnico_anterior_id, comentario) "
+                    "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                     (usuario["empresa_id"], ticket_id, usuario["usuario_id"], tipo,
-                     anterior, nuevo, tecnico_id, comentario))
+                     anterior, nuevo, tecnico_id, tecnico_anterior_id, comentario))
+
+    @staticmethod
+    def registrar_cambio_prioridad(cur, usuario, ticket_id, estado, prioridad_anterior, prioridad_nueva):
+        """Para el Módulo 2 (Timaná): se llama DENTRO de su transacción de Ticket.actualizar()
+        cuando cambia la prioridad, porque eso cambia el plazo del SLA. No hace commit."""
+        if prioridad_anterior == prioridad_nueva:
+            return
+        cur.execute("SELECT tecnico_id FROM tickets WHERE id=%s AND empresa_id=%s",
+                    (ticket_id, usuario["empresa_id"]))
+        fila = cur.fetchone()
+        Historial._registrar(cur, usuario, ticket_id, "Cambio de prioridad", estado, estado,
+                             fila["tecnico_id"] if fila else None,
+                             "Prioridad cambiada de " + prioridad_anterior + " a " + prioridad_nueva + ".")
 
     @staticmethod
     def asignar(ticket_id, usuario, tecnico_id, comentario=""):
@@ -260,26 +322,31 @@ class Historial:
         try:
             with con.cursor() as cur:
                 t = Historial._bloquear_ticket(cur, ticket_id, emp)
-                if t["estado"] == "Cerrado":
-                    raise HistorialError("Un ticket cerrado no se puede reasignar.", 409)
+                if t["estado"] not in ASIGNABLES:
+                    raise HistorialError("Solo se puede asignar un ticket Abierto o En proceso. "
+                                         "Si un ticket Resuelto necesita más trabajo, primero reábrelo.", 409)
                 if t["tecnico_id"] == int(tecnico_id):
                     raise HistorialError("El ticket ya está asignado a ese técnico.", 409)
                 # el técnico debe ser de la misma empresa, tener rol Técnico y estar activo
                 tec = next((x for x in Historial._tecnicos(cur, emp) if x["id"] == int(tecnico_id)), None)
                 if not tec:
                     raise HistorialError("El técnico seleccionado no es válido.")
-                comentario = comentario or "Ticket asignado a " + tec["nombre"] + "."
+                reasignacion = bool(t["tecnico_id"])
+                texto = ("Ticket reasignado a " if reasignacion else "Ticket asignado a ") + tec["nombre"] + "."
+                comentario = comentario or texto
                 cur.execute("UPDATE tickets SET tecnico_id=%s WHERE id=%s AND empresa_id=%s",
                             (tec["id"], ticket_id, emp))
+                # se guarda también quién lo tenía antes (NULL si es la primera asignación)
                 Historial._registrar(cur, usuario, ticket_id, "Asignación",
-                                     t["estado"], t["estado"], tec["id"], comentario)
+                                     t["estado"], t["estado"], tec["id"], comentario,
+                                     tecnico_anterior_id=t["tecnico_id"])
             con.commit()
         except Exception:
             con.rollback()
             raise
         finally:
             con.close()
-        return "Ticket asignado a " + tec["nombre"] + "."
+        return texto
 
     @staticmethod
     def quitar_asignacion(ticket_id, usuario, comentario=""):
@@ -306,9 +373,10 @@ class Historial:
                 comentario = comentario or "Se quitó la asignación a " + nombre + "."
                 cur.execute("UPDATE tickets SET tecnico_id=NULL WHERE id=%s AND empresa_id=%s",
                             (ticket_id, emp))
-                # tecnico_id guarda a quién se le quitó, para mostrarlo en la línea de tiempo
+                # nadie queda a cargo (tecnico_id NULL); tecnico_anterior_id = a quién se le quitó
                 Historial._registrar(cur, usuario, ticket_id, "Desasignación",
-                                     t["estado"], t["estado"], t["tecnico_id"], comentario)
+                                     t["estado"], t["estado"], None, comentario,
+                                     tecnico_anterior_id=t["tecnico_id"])
             con.commit()
         except Exception:
             con.rollback()
@@ -333,11 +401,16 @@ class Historial:
         try:
             with con.cursor() as cur:
                 t = Historial._bloquear_ticket(cur, ticket_id, emp)
-                if not Historial.puede_cambiar_estado(t, usuario):
-                    raise HistorialError("Solo el técnico asignado puede cambiar el estado.", 403)
+                if usuario["rol"] == "Solicitante" and t["solicitante_id"] != usuario["usuario_id"]:
+                    raise HistorialError("El ticket no existe.", 404)   # no revela tickets ajenos
                 if not t["tecnico_id"]:
                     raise HistorialError("Asigna un técnico antes de cambiar el estado.", 409)
-                if nuevo not in TRANSICIONES[t["estado"]]:
+                permitidos = Historial.siguientes(t, usuario)
+                if not permitidos:
+                    if usuario["rol"] == "Solicitante":
+                        raise HistorialError("Solo puedes confirmar o reabrir tu ticket cuando está Resuelto.", 403)
+                    raise HistorialError("Solo el técnico asignado o un administrador puede cambiar el estado.", 403)
+                if nuevo not in permitidos:
                     raise HistorialError(f"No se puede pasar de {t['estado']} a {nuevo}.", 409)
                 # resuelto_en detiene el contador SLA: se fija al resolver y se limpia al reabrir
                 # (al reabrir, el vencimiento original se conserva porque created_at no cambia).
