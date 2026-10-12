@@ -78,6 +78,11 @@
                 data-tecnico="{{ t.tecnico_id or '' }}" data-bs-toggle="modal" data-bs-target="#modal-asignar">{{
                 'Reasignar' if t.tecnico else 'Asignar' }}</button>
               {% endif %}
+              {% if t.puede_quitar %}
+              <button type="button" class="row-action hist-quitar btn-quitar" data-id="{{ t.id }}"
+                data-asunto="{{ t.asunto }}" data-tecnico="{{ t.tecnico }}" data-bs-toggle="modal"
+                data-bs-target="#modal-quitar">Quitar asignación</button>
+              {% endif %}
               {% if t.puede_estado %}
               <button type="button" class="row-action btn-estado" data-id="{{ t.id }}" data-asunto="{{ t.asunto }}"
                 data-estado="{{ t.estado }}" data-siguientes="{{ t.siguientes|join(',') }}" data-bs-toggle="modal"

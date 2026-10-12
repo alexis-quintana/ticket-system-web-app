@@ -1,8 +1,9 @@
-// Módulo 3: cambiar estado (comentario obligatorio) y asignar técnico.
+// Módulo 3: cambiar estado (comentario obligatorio), asignar técnico y quitar la asignación.
 // Mismo patrón de clase: validar en JS + fetch a Flask + mostrar respuesta.
 const $ = id => document.getElementById(id);
 const formEstado = $('form-estado');
 const formAsignar = $('form-asignar');   // solo existe para el Administrador
+const formQuitar = $('form-quitar');     // solo existe para el Administrador
 let ticketActual = null;
 
 // ---------- utilidades de validación (mismas clases que usuarios.js) ----------
@@ -110,4 +111,22 @@ if (formAsignar) {
             $('asignar-mensaje'), 'Asignar ticket');
     });
     tecnico.addEventListener('change', checkTecnico);
+}
+
+// ---------- Quitar asignación (el comentario es opcional) ----------
+if (formQuitar) {
+    const quitarComentario = $('quitar-comentario');
+    document.querySelectorAll('.btn-quitar').forEach(b => b.addEventListener('click', () => {
+        ticketActual = b.dataset.id;
+        formQuitar.reset();
+        clearField(quitarComentario);
+        $('quitar-mensaje').innerHTML = '';
+        $('quitar-ticket').textContent =
+            `TK-${String(b.dataset.id).padStart(4, '0')} · ${b.dataset.asunto} · Técnico: ${b.dataset.tecnico}`;
+    }));
+    formQuitar.addEventListener('submit', e => {
+        e.preventDefault();
+        enviar(`/tickets/${ticketActual}/quitar_asignacion`, formQuitar, $('quitar-guardar'),
+            $('quitar-mensaje'), 'Quitar asignación');
+    });
 }

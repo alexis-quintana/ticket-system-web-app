@@ -5,6 +5,8 @@
   <li>
     {% if e.tipo == 'Asignación' %}
     <strong>Asignado a {{ e.tecnico }}</strong>
+    {% elif e.tipo == 'Desasignación' %}
+    <strong>Se quitó la asignación{% if e.tecnico %} a {{ e.tecnico }}{% endif %}</strong>
     {% else %}
     <strong>Cambio de estado</strong>
     <span class="hist-flujo">

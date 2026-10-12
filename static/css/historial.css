@@ -67,8 +67,24 @@
     gap: 12px;
 }
 
-.detail-side .button {
+.detail-side .button,
+.detail-side .secondary-button {
     width: 100%;
+}
+
+.detail-side .hist-quitar {
+    margin-top: 10px;
+}
+
+/* Quitar asignación: acción de eliminar del módulo, en rojo */
+.hist-acciones .row-action.hist-quitar,
+.detail-side .hist-quitar {
+    color: var(--color-danger);
+}
+
+.hist-btn-peligro {
+    background: var(--color-danger);
+    border-color: var(--color-danger);
 }
 
 .detail-side .detail-card p {
@@ -77,7 +93,8 @@
 }
 
 #estado-mensaje:not(:empty),
-#asignar-mensaje:not(:empty) {
+#asignar-mensaje:not(:empty),
+#quitar-mensaje:not(:empty) {
     margin-top: 4px;
 }
 
