@@ -10,10 +10,15 @@
             <h1 id="page-title" tabindex="-1">Notificaciones</h1>
             <p class="page-description">Asignaciones, cambios de estado y comentarios de tus tickets.</p>
         </div>
-        <form method="post" action="{{ url_for('notificaciones.marcar_todas') }}" data-ajax="todas">
-            <button type="submit" class="button" id="notes-read-all" {% if no_leidas==0 %} disabled{% endif %}>Marcar
-                todas como leídas</button>
-        </form>
+        <div class="notes-heading-actions">
+            <form method="post" action="{{ url_for('notificaciones.marcar_todas') }}" data-ajax="todas">
+                <button type="submit" class="button" id="notes-read-all" {% if no_leidas==0 %} disabled{% endif %}>Marcar
+                    todas como leídas</button>
+            </form>
+            <form method="post" action="{{ url_for('notificaciones.eliminar_leidas') }}" data-ajax="eliminar-leidas">
+                <button type="submit" class="secondary-button" id="notes-delete-read" data-texto="Eliminar leídas">Eliminar leídas</button>
+            </form>
+        </div>
     </div>
 
     <form id="notes-filters" class="notes-filters" method="get" action="{{ url_for('notificaciones.lista') }}">
@@ -70,6 +75,10 @@
                             n.ticket_id }} · {{ tipos[n.tipo] }}</span></button>
                 </form>
                 {% endif %}
+                <form method="post" action="{{ url_for('notificaciones.eliminar', notificacion_id=n.id) }}" data-ajax="eliminar">
+                    <button type="submit" class="row-action danger">Eliminar<span class="sr-only"> notificación: ticket {{
+                            n.ticket_id }} · {{ tipos[n.tipo] }}</span></button>
+                </form>
             </div>
         </li>
         {% endfor %}
