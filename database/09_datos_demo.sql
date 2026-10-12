@@ -19,7 +19,7 @@ insert into roles (id, nombre) values
 -- empresas (la 6 es la plataforma del grupo: aloja al administrador general, no es un cliente)
 insert into empresas (id, nombre, ruc, sector, num_trabajadores, contacto_nombre, contacto_cargo, contacto_email, integrante_responsable) values
   (1, 'ANGEL DIVINO BUS S.A.C.', '20608151771', 'Transporte', 174, 'Hugo Fernando Tantajulca Rimarachin', 'Jefe de TI', 'conpert@maytok.com', 'Montenegro Urrutia, Juan Diego'),
-  (2, 'Empresa en coordinación (demo)', null, 'Manufactura', null, 'Contacto pendiente (demo)', 'Jefe de TI', 'admin@empresa02.test', 'Ordoñez Cavero, Martín Benjamín'),
+  (2, 'AGROCASAGRANDE S.A.C.', '20601226015', 'Agroindustria', 7886, 'Christian Llontop Flores', 'Jefe de T.I.', 'christian.llontop@agrofutura.com.pe', 'Ordoñez Cavero, Martín Benjamín'),
   (3, 'BM Clínica Mendoza S.A.', '20480657323', 'Salud privada', 147, 'Miguel Angel Revilla Pejerrey', 'Jefe de T.I.', 'sistemas@bmclinica.com', 'Quintana Luis, Alexis Abel'),
   (4, 'Móvil Bus S.A.C.', '20555901179', 'Transporte', 1405, 'Juan Ronald Ynga Alvarado', 'Administrador', 'soporteti@movilbus.pe', 'Seminario Bautista, Lorena Marialya'),
   (5, 'Agroindustrial Pomalca S.A.A.', '20163898200', 'Agroindustria', 2133, 'Paul Giraldo Palacios', 'Jefe de TI', 'pgiraldo@pomalca.com.pe', 'Timaná Novoa, Juan Diego'),
