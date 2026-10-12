@@ -1,0 +1,303 @@
+/* Página "en construcción" de Reportes (/reportes).
+   Usa los tokens de global.css y los botones compartidos (.button, .secondary-button).
+   Las animaciones se apagan con "Reducir animaciones" (body.reduce-motion) o prefers-reduced-motion. */
+
+.obra-page {
+    max-width: var(--content-max-width);
+}
+
+/* ---------- Tarjeta principal ---------- */
+.obra-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(260px, .85fr);
+    align-items: center;
+    gap: 24px;
+    margin: 22px 0 30px;
+    padding: 34px 38px;
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 22px;
+    overflow: hidden;
+}
+
+/* franja de obra arriba */
+.obra-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 6px;
+    background: repeating-linear-gradient(-45deg, #e0a100 0 14px, var(--color-navigation) 14px 28px);
+}
+
+.obra-hero h2 {
+    font-size: 28px;
+    line-height: 1.2;
+    margin: 16px 0 12px;
+    color: var(--color-navigation);
+}
+
+.obra-hero p {
+    max-width: 52ch;
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 15px;
+    line-height: 1.65;
+}
+
+.obra-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px 6px 10px;
+    border-radius: 20px;
+    background: #fff5dc;
+    color: #875a00;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .02em;
+}
+
+.obra-pulso {
+    position: relative;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e0a100;
+}
+
+.obra-pulso::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: #e0a100;
+    animation: obra-pulso 1.8s ease-out infinite;
+}
+
+.obra-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+}
+
+.obra-acciones .button,
+.obra-acciones .secondary-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+/* los iconos .icon toman el tamaño de su caja (ver ux.css) */
+.obra-acciones .icon {
+    width: 18px;
+    height: 18px;
+}
+
+/* ---------- Ilustración ---------- */
+.obra-ilustracion svg {
+    display: block;
+    width: 100%;
+    max-width: 360px;
+    height: auto;
+    margin-inline: auto;
+}
+
+.obra-barra {
+    transform-box: fill-box;
+    transform-origin: bottom;
+    animation: obra-barra 2.6s ease-in-out infinite;
+}
+
+.obra-barra.b2 { animation-delay: .2s; }
+.obra-barra.b3 { animation-delay: .4s; }
+.obra-barra.b4 { animation-delay: .6s; }
+
+.obra-engranaje {
+    animation: obra-gira 6s linear infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+/* ---------- Funcionalidades previstas ---------- */
+.obra-seccion {
+    font-size: 18px;
+    margin: 0 0 14px;
+    color: var(--color-navigation);
+}
+
+.obra-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 26px;
+}
+
+.obra-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 22px;
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    transition: border-color .18s, box-shadow .18s, transform .18s;
+}
+
+.obra-item:hover {
+    border-color: #b9c8d3;
+    box-shadow: 0 10px 24px #1b2a3612;
+    transform: translateY(-2px);
+}
+
+.obra-item h3 {
+    font-size: 15px;
+    margin: 8px 0 0;
+    color: var(--color-navigation);
+}
+
+.obra-item p {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 13px;
+    line-height: 1.55;
+    flex: 1;
+}
+
+.obra-icono {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #edf4f7;
+    color: #33637a;
+    font-size: 20px;
+}
+
+.obra-icono--excel { background: #e8f5ed; color: var(--color-success); }
+.obra-icono--pdf { background: #fcecef; color: var(--color-danger); }
+
+.obra-tag {
+    align-self: flex-start;
+    margin-top: 6px;
+    padding: 3px 10px;
+    border: 1px dashed #b8c4ce;
+    border-radius: 20px;
+    color: var(--color-muted);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* ---------- Mientras tanto ---------- */
+.obra-mientras {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 22px;
+    background: #eef5f8;
+    border: 1px solid #d6e6ed;
+    border-radius: 16px;
+}
+
+.obra-mientras p {
+    margin: 0;
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #2f4b59;
+}
+
+.obra-mientras .obra-icono {
+    background: white;
+    color: #946300;
+}
+
+.obra-mientras .secondary-button {
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+/* ---------- Animaciones ---------- */
+@keyframes obra-pulso {
+    0% { transform: scale(1); opacity: .7; }
+    100% { transform: scale(3); opacity: 0; }
+}
+
+@keyframes obra-barra {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(.55); }
+}
+
+@keyframes obra-gira {
+    to { transform: rotate(360deg); }
+}
+
+.reduce-motion .obra-pulso::after,
+.reduce-motion .obra-barra,
+.reduce-motion .obra-engranaje {
+    animation: none;
+}
+
+.reduce-motion .obra-item:hover {
+    transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .obra-pulso::after,
+    .obra-barra,
+    .obra-engranaje {
+        animation: none;
+    }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+    .obra-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .obra-hero {
+        grid-template-columns: 1fr;
+        padding: 28px 20px 24px;
+    }
+
+    .obra-ilustracion {
+        order: -1;
+    }
+
+    .obra-ilustracion svg {
+        max-width: 260px;
+    }
+
+    .obra-hero h2 {
+        font-size: 23px;
+    }
+
+    .obra-mientras {
+        flex-wrap: wrap;
+    }
+
+    .obra-mientras .secondary-button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .obra-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .obra-acciones > * {
+        flex: 1 1 100%;
+        justify-content: center;
+    }
+}

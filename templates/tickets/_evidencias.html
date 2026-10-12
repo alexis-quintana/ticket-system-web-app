@@ -1,0 +1,33 @@
+{# Bloque reutilizable: fotos de evidencia de un ticket con zoom.
+Uso en cualquier plantilla que tenga la variable `t` (el ticket):
+{% include "tickets/_evidencias.html" %}
+Necesita ticket-detail.css y tickets.css (los cargan las páginas de detalle e historial). #}
+{% set fotos = evidencias_de(t.id) %}
+<section class="detail-card" aria-labelledby="evidencias-titulo">
+    <h2 id="evidencias-titulo">Evidencias ({{ fotos|length }})</h2>
+    {% if fotos %}
+    <div class="evidence-gallery">
+        {% for e in fotos %}
+        <button type="button" class="gallery-image" data-src="{{ url_for('tickets.evidencia', evidencia_id=e.id) }}"
+            data-nombre="{{ e.nombre_original }}" aria-label="Ampliar {{ e.nombre_original }}">
+            <img src="{{ url_for('tickets.evidencia', evidencia_id=e.id) }}" alt="">
+            <span>{{ e.nombre_original }}</span>
+        </button>
+        {% endfor %}
+    </div>
+    <p class="detail-muted">Haz clic en una foto para verla en tamaño completo.</p>
+    {% else %}
+    <p class="detail-muted">Este ticket no tiene fotos adjuntas.</p>
+    {% endif %}
+</section>
+
+{% if fotos %}
+<dialog id="dialogo-evidencia" class="ticket-dialog" style="width:900px;" aria-labelledby="evidencia-nombre">
+    <button type="button" class="dialog-close" aria-label="Cerrar">×</button>
+    <h2 id="evidencia-nombre"></h2>
+    <img class="expanded-evidence" id="evidencia-grande" alt="">
+    <p class="detail-muted"><a id="evidencia-abrir" href="#" target="_blank" rel="noopener">Abrir en otra pestaña</a>
+    </p>
+</dialog>
+<script src="{{ url_for('static', filename='js/evidencias.js') }}" defer></script>
+{% endif %}

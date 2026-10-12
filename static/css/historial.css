@@ -1,0 +1,98 @@
+/* Módulo 3 — Asignación, estados e historial.
+   Reutiliza global.css, components.css, tickets.css, ticket-detail.css y polish.css;
+   aquí solo va lo específico del módulo. */
+/* La celda se mantiene como celda de tabla; el flex va en el div interno */
+.hist-celda-acciones {
+    min-width: 230px;
+}
+
+.hist-asunto,
+.hist-responsable {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.hist-responsable {
+    min-width: 110px;
+}
+
+.hist-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    align-items: center;
+}
+
+.hist-acciones .row-action {
+    text-decoration: none;
+    white-space: normal;
+}
+
+.hist-acciones .row-action:hover {
+    text-decoration: underline;
+}
+
+.hist-modal-ticket {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+.hist-cambio {
+    display: flex;
+    align-items: end;
+    gap: 14px;
+}
+
+.hist-cambio>span[aria-hidden] {
+    padding-bottom: 10px;
+    color: var(--color-muted);
+}
+
+.hist-flujo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 10px;
+    color: var(--color-muted);
+}
+
+/* El botón conserva su ancho mientras guarda ("Guardando…") */
+.hist-btn {
+    min-width: 170px;
+}
+
+.modal-footer {
+    gap: 12px;
+}
+
+.detail-side .button {
+    width: 100%;
+}
+
+.detail-side .detail-card p {
+    margin: 0 0 14px;
+    font-size: 14px;
+}
+
+#estado-mensaje:not(:empty),
+#asignar-mensaje:not(:empty) {
+    margin-top: 4px;
+}
+
+@media (max-width: 600px) {
+    .hist-cambio {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .hist-cambio>span[aria-hidden] {
+        display: none;
+    }
+
+    .modal-footer .button,
+    .modal-footer .secondary-button {
+        flex: 1 1 auto;
+    }
+}

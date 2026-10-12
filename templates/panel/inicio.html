@@ -1,0 +1,52 @@
+{% extends "base_app.html" %}
+{% block titulo %}Inicio{% endblock %}
+
+{% block contenido %}
+<section id="page-content" tabindex="-1" class="tickets-page" aria-labelledby="page-title">
+  <h1 id="page-title" tabindex="-1">Hola, {{ usuario_actual.nombre.split()[0] }}</h1>
+  <p class="page-description">
+    {% if usuario_actual.rol == 'Administrador' %}Asigna los tickets nuevos y vigila los plazos de atención de tu empresa.
+    {% elif usuario_actual.rol == 'Técnico' %}Atiende los tickets que tienes asignados y registra cada avance.
+    {% else %}Reporta tus incidencias de TI y sigue su estado hasta que se resuelvan.{% endif %}
+  </p>
+
+  <div class="home-welcome">
+    <h2>¿Qué quieres hacer?</h2>
+    <p class="dash-caption">Accesos rápidos para tu rol de {{ usuario_actual.rol }}.</p>
+    <div class="home-actions">
+      {% if usuario_actual.rol == 'Administrador' %}
+      <a class="button" href="{{ url_for('historial.asignaciones', asignado='sin') }}">Asignar tickets pendientes</a>
+      <a class="secondary-button" href="{{ url_for('panel.dashboard') }}">Ver dashboard</a>
+      <a class="secondary-button" href="{{ url_for('auth.usuarios') }}">Gestionar usuarios</a>
+      {% elif usuario_actual.rol == 'Técnico' %}
+      <a class="button" href="{{ url_for('historial.asignaciones') }}">Ver mis asignaciones</a>
+      <a class="secondary-button" href="{{ url_for('tickets.listar') }}">Todos los tickets</a>
+      <a class="secondary-button" href="{{ url_for('panel.dashboard') }}">Ver dashboard</a>
+      {% else %}
+      <a class="button" href="{{ url_for('tickets.nuevo') }}">+ Crear ticket</a>
+      <a class="secondary-button" href="{{ url_for('tickets.listar') }}">Ver mis tickets</a>
+      {% endif %}
+      <a class="secondary-button" href="{{ url_for('notificaciones.lista') }}">Notificaciones</a>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <h2>Tickets recientes</h2>
+    {% if recientes %}
+    <ul class="home-recent">
+      {% for t in recientes %}
+      <li><a href="{{ url_for('tickets.detalle', ticket_id=t.id) }}">
+          <strong>{{ t.id|codigo_ticket }} · {{ t.asunto }}</strong>
+          <span><span class="ticket-status" data-state="{{ t.estado }}">{{ t.estado }}</span>
+            Prioridad {{ t.prioridad }} · {{ t.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+        </a></li>
+      {% endfor %}
+    </ul>
+    <div class="home-actions"><a class="row-action" href="{{ url_for('tickets.listar') }}">Ver todos los tickets →</a></div>
+    {% else %}
+    <p class="dash-empty">Todavía no hay tickets registrados.
+      {% if usuario_actual.rol == 'Solicitante' %}<a href="{{ url_for('tickets.nuevo') }}">Crea el primero</a>.{% endif %}</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

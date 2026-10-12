@@ -1,0 +1,102 @@
+{# Navegación compartida por base_app.html y auth/_layout.html:
+     {% from "_navegacion.html" import sidebar, topbar with context %}
+   La opción activa se calcula con request.path. Requiere static/js/shell.js y notificaciones.js. #}
+
+{% macro opcion(href, texto, activa, icono) -%}
+<a class="nav-item{% if activa %} is-active{% endif %}" href="{{ href }}" {% if activa %}aria-current="page" {% endif %}><i
+    class="bi bi-{{ icono }} icon" aria-hidden="true"></i><span>{{ texto }}</span></a>
+{%- endmacro %}
+
+{# Migas de pan (estilos en polish.css .breadcrumbs). Uso:
+   {% from "_navegacion.html" import migas with context %}
+   {{ migas([('Inicio', url_for('panel.inicio')), ('Tickets', none)]) }}  -> el último va sin enlace #}
+{% macro migas(items) -%}
+<nav class="breadcrumbs" aria-label="Ruta de navegación">
+  <ol>
+    {% for texto, href in items %}
+    <li>{% if href %}<a href="{{ href }}">{{ texto }}</a>{% else %}<span aria-current="page">{{ texto }}</span>{% endif %}</li>
+    {% endfor %}
+  </ol>
+</nav>
+{%- endmacro %}
+
+{% macro sidebar() %}
+{% set ruta = request.path %}
+{% set rol = usuario_actual.rol if usuario_actual else '' %}
+<aside class="sidebar" id="sidebar" aria-label="Navegación principal">
+  <a class="sidebar-brand" href="/" aria-label="Sistema de Tickets TI, inicio"><img
+      src="{{ url_for('static', filename='img/lexfixer-brand.png') }}" alt="Sistema de Tickets TI"></a>
+  <nav>
+    {{ opcion('/inicio', 'Inicio', ruta == '/inicio', 'house') }}
+    {{ opcion('/dashboard', 'Dashboard', ruta.startswith('/dashboard'), 'layers') }}
+    {{ opcion('/tickets', 'Tickets', ruta.startswith('/tickets'), 'ticket-perforated') }}
+    {% if rol in ('Administrador', 'Técnico') %}
+    {{ opcion('/asignaciones', 'Asignaciones', ruta.startswith('/asignaciones'), 'person-check') }}
+    {% endif %}
+    {% if rol == 'Administrador' %}
+    {{ opcion('/usuarios', 'Usuarios', ruta.startswith('/usuarios'), 'people') }}
+    {{ opcion('/reportes', 'Reportes', ruta.startswith('/reportes'), 'graph-up-arrow') }}
+    {% endif %}
+    {{ opcion('/configuracion', 'Configuración', ruta.startswith('/configuracion'), 'gear') }}
+  </nav>
+  <div class="sidebar-footer"><strong>{{ rol }}</strong>
+    <form method="post" action="{{ url_for('auth.logout') }}"><button class="logout" type="submit"><i class="bi bi-box-arrow-right icon" aria-hidden="true"></i><span>Cerrar sesión</span></button></form>
+  </div>
+</aside>
+{% endmacro %}
+
+{% macro topbar() %}
+<header class="topbar">
+  <button class="icon-button menu-button" type="button" data-action="menu" aria-label="Abrir menú"
+    aria-controls="sidebar" aria-expanded="false"><i class="bi bi-list icon" aria-hidden="true"></i></button>
+  <form id="global-search" class="global-search" role="search" action="/tickets" method="get">
+    <label class="sr-only" for="global-query">Buscar tickets</label>
+    <input id="global-query" name="q" placeholder="Buscar tickets . . ." autocomplete="off"
+      value="{{ request.args.get('q', '') if request.path.startswith('/tickets') }}">
+    <button aria-label="Buscar"><i class="bi bi-search icon" aria-hidden="true"></i></button>
+  </form>
+  <div class="profile">
+    {% if usuario_actual.superadmin %}
+    <form class="company-switch" method="post" action="{{ url_for('auth.cambiar_empresa') }}">
+      <button type="button" class="company-toggle" id="company-toggle" aria-haspopup="true" aria-expanded="false"
+        aria-controls="company-menu" aria-label="Empresa con la que trabajas">
+        <span>{{ usuario_actual.empresa_nombre }}</span>
+        <i class="bi bi-chevron-down icon chevron" aria-hidden="true"></i></button>
+      <div class="company-menu" id="company-menu" hidden>
+        {% for e in usuario_actual.empresas %}
+        <button type="submit" name="empresa_id" value="{{ e.id }}"
+          class="{{ 'is-current' if e.id == usuario_actual.empresa_id }}" {% if e.id == usuario_actual.empresa_id
+          %}aria-current="true" {% endif %}>{{ e.nombre }}</button>
+        {% endfor %}
+      </div>
+    </form>
+    {% elif usuario_actual.empresa_nombre %}
+    <span class="company-name">{{ usuario_actual.empresa_nombre }}</span>
+    {% endif %}
+    <div class="notif-dropdown">
+      <button type="button" class="icon-button notification-bell" id="notif-toggle" aria-haspopup="true"
+        aria-expanded="false" aria-controls="notif-panel" aria-label="Notificaciones"><i class="bi bi-bell icon"
+          aria-hidden="true"></i><span class="notification-count" id="contador-notificaciones" hidden>0</span></button>
+      <div class="notif-panel" id="notif-panel" hidden>
+        <div class="notif-head">
+          <strong>Notificaciones</strong>
+          <button type="button" class="notif-read-all" id="notif-read-all">Marcar todas como leídas</button>
+        </div>
+        <ul class="notif-list" id="notif-list" aria-live="polite">
+          <li class="notif-empty">Cargando…</li>
+        </ul>
+        <a class="notif-foot" href="{{ url_for('notificaciones.lista') }}">Ver todas las notificaciones</a>
+      </div>
+    </div>
+    <div class="profile-dropdown">
+      <button type="button" id="profile-toggle" aria-expanded="false" aria-controls="profile-menu"
+        aria-label="Abrir opciones de mi cuenta"><span class="avatar" aria-hidden="true">{{
+          usuario_actual.iniciales }}</span><strong>{{ usuario_actual.nombre }}</strong><i class="bi bi-chevron-down icon chevron" aria-hidden="true"></i></button>
+      <div id="profile-menu" hidden><a href="/perfil">Mi perfil</a><a href="/configuracion">Configuración</a>
+        <form method="post" action="{{ url_for('auth.logout') }}"><button type="submit">Cerrar sesión</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</header>
+{% endmacro %}

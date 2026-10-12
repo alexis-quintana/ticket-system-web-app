@@ -176,14 +176,14 @@ def cambiar_empresa():
 
 @bp.route('/recuperar')
 def recuperar():
-    return render_template('auth/recovery.html')
+    return render_template('auth/recuperar.html')
 
 
 @bp.route('/usuarios')
 @roles_required('Administrador')
 def usuarios():
     f = {k: request.args.get(k, '').strip() for k in ('q', 'rol', 'activo')}
-    return render_template('auth/users.html', usuarios=User.listar(session['empresa_id'], **f),
+    return render_template('auth/usuarios.html', usuarios=User.listar(session['empresa_id'], **f),
                            areas=User.areas(session['empresa_id']), roles=ROLES, f=f)
 
 

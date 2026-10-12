@@ -1,0 +1,19 @@
+{% extends "base_app.html" %}
+
+{% block contenido %}
+<div style="padding:24px;">
+    <h1>Demo módulo SLA</h1>
+    <p>Vista temporal para validar el cálculo del semáforo antes de integrarlo al listado real de tickets.</p>
+
+    {% for e in ejemplos %}
+        <div class="badge-sla badge-sla--{{ e.color }}">{{ e.texto }}</div>
+    {% endfor %}
+</div>
+
+<style>
+    .badge-sla { display:inline-block; margin:8px 0; padding:4px 10px; border-radius:12px; font-size:14px; font-weight:500; }
+    .badge-sla--verde    { color:#177847; background:#EAF5EE; }
+    .badge-sla--amarillo { color:#946300; background:#FFF4D6; }
+    .badge-sla--rojo     { color:#BC3543; background:#FCECEF; }
+</style>
+{% endblock %}
