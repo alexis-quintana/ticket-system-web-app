@@ -1,7 +1,5 @@
 from flask import Flask, redirect, session, url_for
 
-from db import obtener_conexion
-
 app = Flask(__name__)
 
 
@@ -63,14 +61,5 @@ def inicio():
     return redirect("/inicio")
 
 
-@app.route("/probandoconexion")
-def probandoconexion():
-    try:
-        obtener_conexion()
-        return "<p>Conexión exitosa</p>"
-    except Exception as e:
-        return "<p>Error: " + repr(e) + "</p>"
-
-
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

@@ -192,11 +192,11 @@ confirmarAccion.addEventListener('click', async () => {
     errorAccion.hidden = true;
     let completado = false;
     try {
-        const opciones = eliminar ? { method: 'DELETE' } : {
-            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        const opciones = eliminar ? { method: 'POST' } : {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ activo })
         };
-        const response = await fetch('/api/usuarios/' + id + (eliminar ? '' : '/estado'), opciones);
+        const response = await fetch('/api/usuarios/' + id + (eliminar ? '/eliminar' : '/estado'), opciones);
         const r = await response.json();
         if (response.ok && r.code === 1) {
             const aviso = $('acciones-mensaje');

@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
 
 from models.notificacion import Notificacion, TIPOS
-from modules.auth import roles_required
+from modules.auth import respuesta, roles_required
 
 bp = Blueprint("notificaciones", __name__)
 
@@ -126,7 +126,8 @@ def recientes():
     return jsonify(no_leidas=Notificacion.contar_no_leidas(usuario_id), items=items)
 
 
-# 3. API de notificaciones: GET con jsonify, se prueba en Postman con la sesión iniciada
+# 3. API de notificaciones: se prueba en Postman con la sesión iniciada
+# Solo GET: lista y detalle (marcar y eliminar se hacen desde la web con POST)
 @bp.route('/api/notificaciones')
 @roles_required()
 def api_listar():
@@ -148,19 +149,12 @@ def api_listar():
 @bp.route('/api/notificaciones/<strId>')
 @roles_required()
 def api_detalle(strId):
-    rpta = dict()
     try:
         n = Notificacion.obtener(int(strId), session['usuario_id'])
         if n:
-            rpta['code'] = 1
-            rpta['data'] = a_diccionario(n)
-            rpta['msge'] = 'Notificación encontrada'
-        else:
-            rpta['code'] = 0
-            rpta['data'] = None
-            rpta['msge'] = 'La notificación no existe'
+            return respuesta(1, a_diccionario(n), 'Notificación encontrada')
+        return respuesta(0, None, 'La notificación no existe', 404)
+    except ValueError:
+        return respuesta(0, None, 'El id de la notificación no es válido', 400)
     except Exception as e:
-        rpta['code'] = 0
-        rpta['data'] = None
-        rpta['msge'] = repr(e)
-    return jsonify(rpta)
+        return respuesta(0, None, repr(e), 500)

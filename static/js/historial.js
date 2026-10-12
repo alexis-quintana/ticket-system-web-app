@@ -1,8 +1,9 @@
-// Módulo 3: cambiar estado (comentario obligatorio) y asignar técnico.
+// Módulo 3: cambiar estado (comentario obligatorio), asignar técnico y quitar la asignación.
 // Mismo patrón de clase: validar en JS + fetch a Flask + mostrar respuesta.
 const $ = id => document.getElementById(id);
 const formEstado = $('form-estado');
 const formAsignar = $('form-asignar');   // solo existe para el Administrador
+const formQuitar = $('form-quitar');     // solo existe para el Administrador
 let ticketActual = null;
 
 // ---------- utilidades de validación (mismas clases que usuarios.js) ----------
@@ -21,8 +22,13 @@ const clearField = input => {
     f.classList.remove('error', 'success');
     f.querySelector('small').textContent = '';
 };
-const mostrar = (el, texto, tipo) =>
-    el.innerHTML = `<div class="alert alert-${tipo} mb-0">${texto}</div>`;
+// El mensaje viene del servidor e incluye nombres: se pone como texto, nunca como HTML
+const mostrar = (el, texto, tipo) => {
+    const aviso = document.createElement('div');
+    aviso.className = `alert alert-${tipo} mb-0`;
+    aviso.textContent = texto;
+    el.replaceChildren(aviso);
+};
 const debounce = (fn, delay = 400) => {
     let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), delay); };
 };
@@ -69,8 +75,13 @@ document.querySelectorAll('.btn-estado').forEach(b => b.addEventListener('click'
     $('estado-ticket').textContent = `TK-${String(b.dataset.id).padStart(4, '0')} · ${b.dataset.asunto}`;
     const actual = $('estado-actual');
     actual.textContent = b.dataset.estado; actual.dataset.state = b.dataset.estado;
+    // Para el Solicitante se explica qué significa cada opción (el valor enviado sigue siendo el estado)
+    const textos = b.dataset.modo === 'solicitante'
+        ? { 'Cerrado': 'Cerrado — ya funciona, confirmo la solución',
+            'En proceso': 'En proceso — el problema sigue, reabrir' }
+        : {};
     estadoNuevo.innerHTML = '<option value="">— Selecciona —</option>' +
-        b.dataset.siguientes.split(',').map(s => `<option>${s}</option>`).join('');
+        b.dataset.siguientes.split(',').map(s => `<option value="${s}">${textos[s] || s}</option>`).join('');
 }));
 
 formEstado.addEventListener('submit', e => {
@@ -95,14 +106,28 @@ if (formAsignar) {
         if (!tecnico.value) { showError(tecnico, 'Selecciona un técnico.'); return false; }
         showSuccess(tecnico); return true;
     };
+    let botonAsignar = null;   // botón de la fila que abrió el modal (para "Quitar asignación")
     document.querySelectorAll('.btn-asignar').forEach(b => b.addEventListener('click', () => {
+        botonAsignar = b;
         ticketActual = b.dataset.id;
         formAsignar.reset();
         clearField(tecnico);
         $('asignar-mensaje').innerHTML = '';
+        $('modal-asignar-titulo').textContent = b.dataset.tecnico ? 'Reasignar ticket' : 'Asignar ticket';
         $('asignar-ticket').textContent = `TK-${String(b.dataset.id).padStart(4, '0')} · ${b.dataset.asunto}`;
         tecnico.value = b.dataset.tecnico || '';
+        $('asignar-quitar-zona').hidden = !b.dataset.puedeQuitar;
     }));
+    // Desde el modal de Reasignar se pasa al de Quitar asignación con los mismos datos del ticket
+    $('asignar-quitar').addEventListener('click', () => {
+        const b = botonAsignar;
+        const modalAsignar = bootstrap.Modal.getOrCreateInstance($('modal-asignar'));
+        $('modal-asignar').addEventListener('hidden.bs.modal', () => {
+            prepararQuitar(b.dataset.id, b.dataset.asunto, b.dataset.nombreTecnico);
+            bootstrap.Modal.getOrCreateInstance($('modal-quitar')).show();
+        }, { once: true });
+        modalAsignar.hide();
+    });
     formAsignar.addEventListener('submit', e => {
         e.preventDefault();
         if (!checkTecnico()) { tecnico.focus(); return; }
@@ -110,4 +135,26 @@ if (formAsignar) {
             $('asignar-mensaje'), 'Asignar ticket');
     });
     tecnico.addEventListener('change', checkTecnico);
+}
+
+// ---------- Quitar asignación (el comentario es opcional) ----------
+if (formQuitar) {
+    const quitarComentario = $('quitar-comentario');
+    document.querySelectorAll('.btn-quitar').forEach(b => b.addEventListener('click', () =>
+        prepararQuitar(b.dataset.id, b.dataset.asunto, b.dataset.tecnico)));
+    formQuitar.addEventListener('submit', e => {
+        e.preventDefault();
+        enviar(`/tickets/${ticketActual}/quitar_asignacion`, formQuitar, $('quitar-guardar'),
+            $('quitar-mensaje'), 'Quitar asignación');
+    });
+}
+
+// Deja listo el modal de Quitar asignación (lo usan el botón del detalle y el modal de Reasignar)
+function prepararQuitar(id, asunto, nombreTecnico) {
+    ticketActual = id;
+    $('form-quitar').reset();
+    clearField($('quitar-comentario'));
+    $('quitar-mensaje').innerHTML = '';
+    $('quitar-ticket').textContent =
+        `TK-${String(id).padStart(4, '0')} · ${asunto} · Técnico: ${nombreTecnico}`;
 }

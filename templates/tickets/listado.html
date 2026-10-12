@@ -2,6 +2,10 @@
 {% from "_navegacion.html" import migas with context %}
 {% set seccion = 'Tickets' %}
 {% block titulo %}Tickets{% endblock %}
+{% block css_extra %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sla.css') }}">
+{% endblock %}
 
 {% block contenido %}
 <section id="page-content" tabindex="-1" class="tickets-page" aria-labelledby="page-title">
@@ -14,23 +18,43 @@
     <a class="button" href="{{ url_for('tickets.nuevo') }}">+ Crear ticket</a>
   </div>
 
-  <form class="ticket-filters" data-auto-submit method="get" action="{{ url_for('tickets.listar') }}" role="search"
+  <form class="filtros-tickets" data-auto-submit method="get" action="{{ url_for('tickets.listar') }}" role="search"
     aria-label="Filtrar tickets">
-    <label class="sr-only" for="f-q">Buscar por asunto o código</label>
-    <input id="f-q" name="q" value="{{ f.q }}" placeholder="Buscar por asunto o código (TK-0001)" autocomplete="off">
-    <label class="sr-only" for="f-estado">Estado</label>
-    <select id="f-estado" name="estado">
-      <option value="">Todos los estados</option>
-      {% for e in estados %}<option {{ 'selected' if f.estado == e }}>{{ e }}</option>{% endfor %}
-    </select>
-    <label class="sr-only" for="f-prioridad">Prioridad</label>
-    <select id="f-prioridad" name="prioridad">
-      <option value="">Todas las prioridades</option>
-      {% for p in prioridades %}<option {{ 'selected' if f.prioridad == p }}>{{ p }}</option>{% endfor %}
-    </select>
-    <button class="new-ticket">Filtrar</button>
+    <div class="filtro filtro-buscar">
+      <label for="f-q">Buscar</label>
+      <input id="f-q" name="q" value="{{ f.q }}" placeholder="Asunto o N° de ticket" autocomplete="off">
+    </div>
+    <div class="filtro">
+      <label for="f-estado">Estado</label>
+      <select id="f-estado" name="estado">
+        <option value="">Todos</option>
+        {% for e in estados %}<option {{ 'selected' if f.estado==e }}>{{ e }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="filtro">
+      <label for="f-prioridad">Prioridad</label>
+      <select id="f-prioridad" name="prioridad">
+        <option value="">Todas</option>
+        {% for p in prioridades %}<option {{ 'selected' if f.prioridad==p }}>{{ p }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="filtro-acciones">
+      <button class="button">Filtrar</button>
+      <a class="secondary-button" href="{{ url_for('tickets.listar') }}">Limpiar</a>
+    </div>
   </form>
 
+  {% if vencidos or por_vencer %}
+  <div class="sla-alert" role="alert">
+    <strong>Atención:</strong>
+    {% if vencidos %}{{ vencidos }} ticket(s) vencido(s){% endif %}{% if vencidos and por_vencer %} y {% endif %}{% if
+    por_vencer %}{{ por_vencer }} por vencer{% endif %}.
+  </div>
+  {% endif %}
+
+  {% if tickets %}
+  <p class="table-count">{{ tickets|length }} ticket(s)</p>
+  {% endif %}
   <div class="table-card">
     {% if tickets %}
     <div class="table-scroll">
@@ -54,7 +78,8 @@
             <td>{{ t.categoria }}</td>
             <td><span class="priority{{ ' priority-high' if t.prioridad == 'Alta' }}">{{ t.prioridad }}</span></td>
             <td><span class="ticket-status">{{ t.estado }}</span></td>
-            <td><span class="sla sla-{{ t.sla.clase }}"><strong>{{ t.sla.estado }}</strong>{{ t.sla.detalle }}</span></td>
+            <td><span class="sla sla-{{ t.sla.clase }}"><strong>{{ t.sla.estado }}</strong>{{ t.sla.detalle }}</span>
+            </td>
             <td>{{ t.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
             <td>
               {% if t.evidencia_id %}
@@ -64,14 +89,19 @@
               </div>
               {% else %}<span class="no-evidence">—</span>{% endif %}
             </td>
-            <td><a class="row-action" href="{{ url_for('tickets.detalle', ticket_id=t.id) }}">Ver detalle<span
-                  class="sr-only"> de {{ t.id|codigo_ticket }}</span></a></td>
+            <td class="row-actions">
+              <a class="row-action" href="{{ url_for('tickets.detalle', ticket_id=t.id) }}">Ver detalle<span
+                  class="sr-only"> de {{ t.id|codigo_ticket }}</span></a>
+              {% if t.editable %}
+              <a class="row-action" href="{{ url_for('tickets.editar', ticket_id=t.id) }}">Editar<span class="sr-only">
+                  {{ t.id|codigo_ticket }}</span></a>
+              {% endif %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-    <p class="table-count">{{ tickets|length }} ticket(s)</p>
     {% elif f.q or f.estado or f.prioridad %}
     <div class="empty-state">
       <h2>Sin resultados para estos filtros</h2>

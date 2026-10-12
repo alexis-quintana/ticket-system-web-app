@@ -1,33 +1,16 @@
-"""Módulo 5 (Quintana): comentarios del ticket.
-
-El comentario se guarda en `ticket_comentarios`; el trigger `trg_comentarios_ai` crea la
-notificación para el solicitante y el técnico asignado (menos para quien comenta).
-Se muestra en el detalle con {% include "historial/_comentarios.html" %}.
-"""
+# Módulo 5 (Quintana): comentarios del ticket.
+# El SQL está en models/comentario.py; el trigger trg_comentarios_ai avisa al solicitante y al técnico.
+# Se muestra en el detalle con {% include "historial/_comentarios.html" %}.
 from flask import Blueprint, abort, flash, redirect, session, request, url_for
 
-from db import obtener_conexion
-from modules.auth import roles_required
+from models.comentario import Comentario, MAX_COMENTARIO
+from modules.auth import respuesta, roles_required
 
 bp = Blueprint("comentarios", __name__)
 
-MAX_COMENTARIO = 1000
 
-
-def _ticket_visible(cur, ticket_id):
-    """Ticket de la empresa activa que el usuario puede ver, o None."""
-    cur.execute("SELECT id, estado, solicitante_id, tecnico_id FROM tickets WHERE id=%s AND empresa_id=%s",
-                (ticket_id, session["empresa_id"]))
-    t = cur.fetchone()
-    if not t:
-        return None
-    if session["rol"] == "Solicitante" and t["solicitante_id"] != session["usuario_id"]:
-        return None
-    return t
-
-
+# Administrador, solicitante dueño o técnico asignado; el ticket cerrado ya no admite cambios.
 def _puede_comentar(t):
-    """Administrador, solicitante dueño o técnico asignado; el ticket cerrado ya no admite cambios."""
     if t["estado"] == "Cerrado":
         return False
     if session["rol"] == "Administrador":
@@ -35,24 +18,15 @@ def _puede_comentar(t):
     return session["usuario_id"] in (t["solicitante_id"], t["tecnico_id"])
 
 
+# Ticket que el usuario de la sesión puede ver, o None.
+def _ticket_visible(ticket_id):
+    return Comentario.ticket_visible(ticket_id, session["empresa_id"], session["usuario_id"], session["rol"])
+
+
+# Lista de comentarios del ticket (más antiguos primero) para la plantilla del detalle.
 @bp.app_template_global("comentarios_de")
 def comentarios_de(ticket_id):
-    """Lista de comentarios del ticket (más antiguos primero) para la plantilla del detalle."""
-    con = obtener_conexion()
-    try:
-        with con.cursor() as cur:
-            cur.execute(
-                "SELECT c.id, c.comentario, c.created_at, c.usuario_id, "
-                "CONCAT(p.nombres, ' ', p.apellidos) AS autor, r.nombre AS rol "
-                "FROM ticket_comentarios c "
-                "JOIN usuarios u ON u.id = c.usuario_id "
-                "JOIN personas p ON p.id = u.persona_id "
-                "JOIN roles r ON r.id = u.rol_id "
-                "WHERE c.ticket_id=%s AND c.empresa_id=%s ORDER BY c.created_at, c.id",
-                (ticket_id, session["empresa_id"]))
-            return cur.fetchall()
-    finally:
-        con.close()
+    return Comentario.listar(ticket_id, session["empresa_id"])
 
 
 @bp.app_template_global("puede_comentar")
@@ -60,6 +34,7 @@ def puede_comentar(ticket):
     return _puede_comentar(ticket)
 
 
+# 1. Pantalla: el formulario del detalle del ticket
 @bp.route("/tickets/<int:ticket_id>/comentarios", methods=["POST"])
 @roles_required()
 def comentar(ticket_id):
@@ -71,22 +46,46 @@ def comentar(ticket_id):
     if len(texto) > MAX_COMENTARIO:
         flash("El comentario no puede superar %d caracteres." % MAX_COMENTARIO, "danger")
         return redirect(destino)
-
-    con = obtener_conexion()
-    try:
-        with con.cursor() as cur:
-            t = _ticket_visible(cur, ticket_id)
-            if not t:
-                abort(404)
-            if not _puede_comentar(t):
-                flash("No puedes comentar en este ticket.", "danger")
-                return redirect(destino)
-            cur.execute(
-                "INSERT INTO ticket_comentarios (empresa_id, ticket_id, usuario_id, comentario) "
-                "VALUES (%s, %s, %s, %s)",
-                (session["empresa_id"], ticket_id, session["usuario_id"], texto))
-        con.commit()
-    finally:
-        con.close()
+    t = _ticket_visible(ticket_id)
+    if not t:
+        abort(404)
+    if not _puede_comentar(t):
+        flash("No puedes comentar en este ticket.", "danger")
+        return redirect(destino)
+    Comentario.crear(session["empresa_id"], ticket_id, session["usuario_id"], texto)
     flash("Comentario publicado.", "success")
     return redirect(destino)
+
+
+# 2. API de comentarios: GET lista y POST crea, se prueba en Postman con la sesión iniciada
+@bp.route("/api/tickets/<int:ticket_id>/comentarios")
+@roles_required()
+def api_listar(ticket_id):
+    try:
+        if not _ticket_visible(ticket_id):
+            return respuesta(0, None, "El ticket no existe.", 404)
+        lista = list()
+        for c in Comentario.listar(ticket_id, session["empresa_id"]):
+            lista.append(c.a_diccionario())
+        return respuesta(1, lista, "Lista de comentarios generada correctamente en JSON.")
+    except Exception as e:
+        return respuesta(0, None, repr(e), 500)
+
+
+@bp.route("/api/tickets/<int:ticket_id>/comentarios", methods=["POST"])
+@roles_required()
+def api_crear(ticket_id):
+    try:
+        datos = request.get_json(silent=True) or request.form
+        texto = str(datos.get("comentario", "")).strip()
+        t = _ticket_visible(ticket_id)
+        if not t:
+            return respuesta(0, None, "El ticket no existe.", 404)
+        if not _puede_comentar(t):
+            return respuesta(0, None, "No puedes comentar en este ticket.", 403)
+        if not texto or len(texto) > MAX_COMENTARIO:
+            return respuesta(0, None, "El comentario debe tener entre 1 y %d caracteres." % MAX_COMENTARIO, 400)
+        comentario = Comentario.crear(session["empresa_id"], ticket_id, session["usuario_id"], texto)
+        return respuesta(1, comentario.a_diccionario(), "Comentario publicado.", 201)
+    except Exception as e:
+        return respuesta(0, None, repr(e), 500)

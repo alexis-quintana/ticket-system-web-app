@@ -1,13 +1,13 @@
 {# Navegación compartida por base_app.html y auth/_layout.html:
      {% from "_navegacion.html" import sidebar, topbar with context %}
-   La opción activa se calcula con request.path. Requiere static/js/shell.js y notificaciones.js. #}
+   La opción activa se calcula con request.path. Requiere static/js/interfaz.js y notificaciones.js. #}
 
 {% macro opcion(href, texto, activa, icono) -%}
 <a class="nav-item{% if activa %} is-active{% endif %}" href="{{ href }}" {% if activa %}aria-current="page" {% endif %}><i
     class="bi bi-{{ icono }} icon" aria-hidden="true"></i><span>{{ texto }}</span></a>
 {%- endmacro %}
 
-{# Migas de pan (estilos en polish.css .breadcrumbs). Uso:
+{# Migas de pan (estilos en pulido.css .breadcrumbs). Uso:
    {% from "_navegacion.html" import migas with context %}
    {{ migas([('Inicio', url_for('panel.inicio')), ('Tickets', none)]) }}  -> el último va sin enlace #}
 {% macro migas(items) -%}
@@ -35,6 +35,7 @@
     {% endif %}
     {% if rol == 'Administrador' %}
     {{ opcion('/usuarios', 'Usuarios', ruta.startswith('/usuarios'), 'people') }}
+    {{ opcion('/sla', 'Plazos SLA', ruta.startswith('/sla'), 'stopwatch') }}
     {{ opcion('/reportes', 'Reportes', ruta.startswith('/reportes'), 'graph-up-arrow') }}
     {% endif %}
     {{ opcion('/configuracion', 'Configuración', ruta.startswith('/configuracion'), 'gear') }}

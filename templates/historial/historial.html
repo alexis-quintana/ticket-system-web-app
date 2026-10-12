@@ -3,7 +3,7 @@
 {% block title %}Historial {{ t.id|codigo_ticket }}{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/validacion.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/ticket-detail.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tickets-detalle.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/historial.css') }}">
 {% endblock %}
 {% block content %}
@@ -22,7 +22,12 @@ none)]) }}
           <p class="detail-muted mb-1">{{ t.id|codigo_ticket }}</p>
           <h2 id="page-title">{{ t.asunto }}</h2>
         </div>
-        <span class="state-badge" data-state="{{ t.estado }}">{{ t.estado }}</span>
+        <div class="detail-heading-actions">
+          {% if ticket_editable(t.id) %}<a class="boton-editar-ticket"
+            href="{{ url_for('tickets.editar', ticket_id=t.id) }}"><i class="bi bi-pencil"
+              aria-hidden="true"></i>Editar</a>{% endif %}
+          <span class="state-badge" data-state="{{ t.estado }}">{{ t.estado }}</span>
+        </div>
       </div>
       <dl class="ticket-facts">
         <div>
@@ -65,18 +70,32 @@ none)]) }}
   <aside class="detail-side">
     <section class="detail-card">
       <h2>Responsable</h2>
-      <p>{{ t.tecnico or 'Aún no tiene técnico asignado.' }}</p>
-      {% if usuario_actual.rol == 'Administrador' and t.estado != 'Cerrado' %}
+      <p>{{ t.tecnico or 'Aún no tiene técnico asignado.' }}
+        {% if t.tecnico_inactivo %}<span class="hist-inactivo">Inactivo</span>{% endif %}</p>
+      {% if t.tecnico_inactivo and usuario_actual.rol == 'Administrador' %}
+      <p class="detail-muted">Este técnico fue desactivado. Reasigna el ticket para que alguien lo atienda.</p>
+      {% endif %}
+      {% if t.puede_asignar %}
       <button type="button" class="button btn-asignar" data-id="{{ t.id }}" data-asunto="{{ t.asunto }}"
         data-tecnico="{{ t.tecnico_id or '' }}" data-bs-toggle="modal" data-bs-target="#modal-asignar">
         {{ 'Reasignar técnico' if t.tecnico else 'Asignar técnico' }}</button>
+      {% endif %}
+      {% if t.puede_quitar %}
+      <button type="button" class="secondary-button hist-quitar btn-quitar" data-id="{{ t.id }}"
+        data-asunto="{{ t.asunto }}" data-tecnico="{{ t.tecnico }}" data-bs-toggle="modal"
+        data-bs-target="#modal-quitar">Quitar asignación</button>
       {% endif %}
     </section>
 
     <section class="detail-card">
       <h2>Estado</h2>
       <p>Actual: <span class="state-badge" data-state="{{ t.estado }}">{{ t.estado }}</span></p>
-      {% if t.puede_estado %}
+      {% if t.puede_estado and usuario_actual.rol == 'Solicitante' %}
+      <p class="detail-muted">El técnico marcó tu ticket como resuelto. Confírmalo si ya funciona o reábrelo si el problema sigue.</p>
+      <button type="button" class="button btn-estado" data-id="{{ t.id }}" data-asunto="{{ t.asunto }}"
+        data-estado="{{ t.estado }}" data-siguientes="{{ t.siguientes|join(',') }}" data-modo="solicitante"
+        data-bs-toggle="modal" data-bs-target="#modal-estado">Confirmar o reabrir</button>
+      {% elif t.puede_estado %}
       <button type="button" class="button btn-estado" data-id="{{ t.id }}" data-asunto="{{ t.asunto }}"
         data-estado="{{ t.estado }}" data-siguientes="{{ t.siguientes|join(',') }}" data-bs-toggle="modal"
         data-bs-target="#modal-estado">Cambiar estado</button>

@@ -81,30 +81,60 @@ begin
 end$$
 
 -- módulo 5: cada asignación o cambio de estado genera su notificación.
--- la asignación avisa al técnico; el cambio de estado avisa al solicitante.
+-- asignación: avisa al técnico nuevo, al técnico anterior (si lo hubo) y al solicitante.
+-- cambio de estado: avisa al solicitante y al técnico asignado. nadie recibe aviso de lo que hizo él mismo.
 create trigger trg_historial_ai after insert on ticket_historial
 for each row
 begin
     declare v_solicitante int;
+    declare v_tecnico int;
     declare v_asunto varchar(120);
+    declare v_codigo varchar(12);
 
-    select solicitante_id, asunto
-      into v_solicitante, v_asunto
+    select solicitante_id, tecnico_id, asunto
+      into v_solicitante, v_tecnico, v_asunto
       from tickets
      where id = new.ticket_id;
 
-    if new.tipo = 'Asignación' then
-        if new.tecnico_id is not null and new.tecnico_id <> new.usuario_id then
+    set v_codigo = fn_codigo_ticket(new.ticket_id);
+
+    if new.tipo in ('Asignación', 'Desasignación') then
+        -- técnico nuevo
+        if new.tipo = 'Asignación' and new.tecnico_id is not null and new.tecnico_id <> new.usuario_id then
             insert into notificaciones (usuario_id, ticket_id, tipo, mensaje, created_at)
             values (new.tecnico_id, new.ticket_id, 'asignacion',
-                    concat('Se te asignó el ticket ', fn_codigo_ticket(new.ticket_id), ': ', v_asunto),
+                    concat('Se te asignó el ticket ', v_codigo, ': ', v_asunto), new.created_at);
+        end if;
+
+        -- técnico que lo tenía antes (reasignación o desasignación)
+        if new.tecnico_anterior_id is not null and new.tecnico_anterior_id <> new.usuario_id then
+            insert into notificaciones (usuario_id, ticket_id, tipo, mensaje, created_at)
+            values (new.tecnico_anterior_id, new.ticket_id, 'asignacion',
+                    concat('Ya no estás a cargo del ticket ', v_codigo, ': ', v_asunto), new.created_at);
+        end if;
+
+        -- solicitante: sabe quién atenderá su ticket
+        if new.tipo = 'Asignación' and v_solicitante <> new.usuario_id then
+            insert into notificaciones (usuario_id, ticket_id, tipo, mensaje, created_at)
+            values (v_solicitante, new.ticket_id, 'asignacion',
+                    concat('Tu ticket ', v_codigo, ' fue asignado a ', fn_nombre_usuario(new.tecnico_id)),
                     new.created_at);
         end if;
+
     elseif new.tipo = 'Cambio de estado' then
+        -- solicitante
         if v_solicitante <> new.usuario_id then
             insert into notificaciones (usuario_id, ticket_id, tipo, mensaje, created_at)
             values (v_solicitante, new.ticket_id, 'cambio_estado',
-                    concat(fn_codigo_ticket(new.ticket_id), ' cambió de estado: ', new.estado_anterior, ' → ', new.estado_nuevo),
+                    concat(v_codigo, ' cambió de estado: ', new.estado_anterior, ' → ', new.estado_nuevo),
+                    new.created_at);
+        end if;
+
+        -- técnico asignado, si otra persona movió su ticket
+        if v_tecnico is not null and v_tecnico <> new.usuario_id then
+            insert into notificaciones (usuario_id, ticket_id, tipo, mensaje, created_at)
+            values (v_tecnico, new.ticket_id, 'cambio_estado',
+                    concat(v_codigo, ' cambió de estado: ', new.estado_anterior, ' → ', new.estado_nuevo),
                     new.created_at);
         end if;
     end if;

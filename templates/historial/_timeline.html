@@ -1,10 +1,16 @@
-{# Línea de tiempo del ticket. Reutilizable: {% include "historial/_timeline.html" %} con la variable `eventos` #}
-{% if eventos %}
+{# Línea de tiempo del ticket. Reutilizable: {% include "historial/_timeline.html" %}
+   con las variables `eventos` (más reciente primero) y `t` (el ticket, para el evento de creación). #}
 <ol class="ticket-timeline" aria-label="Historial del ticket">
   {% for e in eventos %}
   <li>
-    {% if e.tipo == 'Asignación' %}
+    {% if e.tipo == 'Asignación' and e.tecnico_anterior %}
+    <strong>Reasignado de {{ e.tecnico_anterior }} a {{ e.tecnico }}</strong>
+    {% elif e.tipo == 'Asignación' %}
     <strong>Asignado a {{ e.tecnico }}</strong>
+    {% elif e.tipo == 'Desasignación' %}
+    <strong>Se quitó la asignación{% if e.tecnico_anterior %} a {{ e.tecnico_anterior }}{% endif %}</strong>
+    {% elif e.tipo == 'Cambio de prioridad' %}
+    <strong>Cambio de prioridad</strong>
     {% else %}
     <strong>Cambio de estado</strong>
     <span class="hist-flujo">
@@ -21,7 +27,14 @@
     <p>{{ e.comentario }}</p>
   </li>
   {% endfor %}
+  {# El evento más antiguo: el registro del ticket (sale de la tabla tickets, no de ticket_historial) #}
+  <li class="hist-creado">
+    <strong>Ticket registrado</strong>
+    <div class="history-metadata">
+      <span>{{ t.solicitante or '—' }}</span>
+      <time datetime="{{ t.created_at.isoformat() }}" title="{{ t.created_at.strftime('%d/%m/%Y %H:%M') }}">
+        {{ t.created_at.strftime('%d/%m/%Y %H:%M') }} · {{ t.created_at|relativo }}</time>
+    </div>
+    {% if not eventos %}<p class="detail-muted">Aún no tiene movimientos. Aparecerán aquí al asignarlo o cambiar su estado.</p>{% endif %}
+  </li>
 </ol>
-{% else %}
-<p class="detail-muted">Este ticket aún no tiene movimientos. Aparecerán aquí al asignarlo o cambiar su estado.</p>
-{% endif %}

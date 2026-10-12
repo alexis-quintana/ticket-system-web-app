@@ -1,5 +1,6 @@
 """Controlador de autenticación. El SQL y las reglas están en models/user.py."""
 import os
+import secrets
 from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, current_app
 from werkzeug.exceptions import BadRequest
@@ -48,7 +49,11 @@ def datos_peticion():
 
 @bp.record_once
 def _configurar(state):
-    state.app.secret_key = state.app.secret_key or os.environ.get("SECRET_KEY", "dev-clave-secreta")
+    clave = os.environ.get("SECRET_KEY")
+    if not clave:
+        # sin variable de entorno: clave fija solo en modo debug (para no perder la sesión al recargar); si no, una al azar
+        clave = "clave-solo-para-desarrollo" if state.app.debug else secrets.token_hex(32)
+    state.app.secret_key = state.app.secret_key or clave
 
 
 def _es_json():
@@ -213,19 +218,23 @@ def api_usuarios():
     return respuesta(1, dict(id=uid), mensaje, 201)
 
 
-@bp.route('/api/usuarios/<int:uid>', methods=['GET', 'PUT', 'DELETE'])
+@bp.route('/api/usuarios/<int:uid>')
 @roles_required('Administrador')
 @ruta_json
 def api_usuario(uid):
-    emp, yo = session['empresa_id'], session['usuario_id']
-    if request.method == 'DELETE':
-        User.eliminar(emp, uid, yo)
-        return respuesta(1, dict(id=uid), "Usuario eliminado correctamente.")
-    actual = User.obtener(emp, uid)
+    actual = User.obtener(session['empresa_id'], uid)
     if not actual:
         raise UserError("El usuario no existe.", 404)
-    if request.method == 'GET':
-        return respuesta(1, actual, "Usuario encontrado.")
+    return respuesta(1, actual, "Usuario encontrado.")
+
+
+@bp.route('/api/usuarios/<int:uid>/actualizar', methods=['POST'])
+@roles_required('Administrador')
+@ruta_json
+def api_actualizar_usuario(uid):
+    emp, yo = session['empresa_id'], session['usuario_id']
+    if not User.obtener(emp, uid):
+        raise UserError("El usuario no existe.", 404)
     datos = datos_peticion()
     datos['id'] = str(uid)
     if 'activo' not in datos:
@@ -234,7 +243,15 @@ def api_usuario(uid):
     return respuesta(1, dict(id=uid), mensaje)
 
 
-@bp.route('/api/usuarios/<int:uid>/estado', methods=['PATCH'])
+@bp.route('/api/usuarios/<int:uid>/eliminar', methods=['POST'])
+@roles_required('Administrador')
+@ruta_json
+def api_eliminar_usuario(uid):
+    User.eliminar(session['empresa_id'], uid, session['usuario_id'])
+    return respuesta(1, dict(id=uid), "Usuario eliminado correctamente.")
+
+
+@bp.route('/api/usuarios/<int:uid>/estado', methods=['POST'])
 @roles_required('Administrador')
 @ruta_json
 def api_estado(uid):

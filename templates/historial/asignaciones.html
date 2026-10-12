@@ -3,7 +3,7 @@
 {% block title %}Asignación de tickets{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/validacion.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/ticket-detail.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tickets-detalle.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/historial.css') }}">
 {% endblock %}
 {% block content %}
@@ -18,38 +18,43 @@
   </div>
 </div>
 
-<form method="get" data-auto-submit class="row g-2 align-items-end my-3">
-  <div class="col-md-3"><label class="form-label small fw-semibold" for="f-q">Buscar</label>
+{# Filtros: Buscar es más ancho, los selects se reparten el resto y los botones miden lo justo,
+   así la barra llega al borde derecho igual que en Tickets y Usuarios (para Admin y para Técnico). #}
+<form method="get" data-auto-submit class="row g-2 align-items-end hist-filtros">
+  <div class="col-md-4"><label class="form-label small fw-semibold" for="f-q">Buscar</label>
     <input class="form-control" id="f-q" name="q" value="{{ f.q }}" placeholder="Asunto o N° de ticket">
   </div>
-  <div class="col-md-2"><label class="form-label small fw-semibold" for="f-estado">Estado</label>
+  <div class="col-md"><label class="form-label small fw-semibold" for="f-estado">Estado</label>
     <select class="form-select" id="f-estado" name="estado">
-      <option value="">Todos</option>
+      <option value="pendientes" {{ 'selected' if f.estado=='pendientes' }}>Pendientes</option>
+      <option value="todos" {{ 'selected' if f.estado=='todos' }}>Todos</option>
       {% for e in estados %}<option {{ 'selected' if f.estado==e }}>{{ e }}</option>{% endfor %}
     </select>
   </div>
-  <div class="col-md-2"><label class="form-label small fw-semibold" for="f-prioridad">Prioridad</label>
+  <div class="col-md"><label class="form-label small fw-semibold" for="f-prioridad">Prioridad</label>
     <select class="form-select" id="f-prioridad" name="prioridad">
       <option value="">Todas</option>
       {% for p in prioridades %}<option {{ 'selected' if f.prioridad==p }}>{{ p }}</option>{% endfor %}
     </select>
   </div>
   {% if usuario_actual.rol == 'Administrador' %}
-  <div class="col-md-2"><label class="form-label small fw-semibold" for="f-asignado">Responsable</label>
+  <div class="col-md"><label class="form-label small fw-semibold" for="f-asignado">Responsable</label>
     <select class="form-select" id="f-asignado" name="asignado">
       <option value="">Todos</option>
       <option value="sin" {{ 'selected' if f.asignado=='sin' }}>Sin asignar</option>
+      <option value="inactivo" {{ 'selected' if f.asignado=='inactivo' }}>Técnico inactivo</option>
     </select>
   </div>
   {% endif %}
-  <div class="col-md-3 d-flex gap-2"><button class="button">Filtrar</button>
+  <div class="col-md-auto d-flex gap-2"><button class="button">Filtrar</button>
     <a class="secondary-button" href="{{ url_for('historial.asignaciones') }}">Limpiar</a>
   </div>
 </form>
 
+<p class="table-count">{{ tickets|length }} ticket(s)</p>
 <div class="table-card">
   <div class="table-scroll">
-    <table class="ticket-table">
+    <table class="ticket-table hist-tabla">
       <thead>
         <tr>
           <th>ID / asunto</th>
@@ -66,17 +71,20 @@
           <th scope="row"><span>{{ t.id|codigo_ticket }}</span><span class="detail-muted hist-asunto">{{ t.asunto
               }}</span></th>
           <td><span class="priority-badge" data-priority="{{ t.prioridad }}">{{ t.prioridad }}</span></td>
-          <td class="hist-responsable">{{ t.tecnico or 'Sin asignar' }}</td>
+          <td class="hist-responsable">{{ t.tecnico or 'Sin asignar' }}
+            {% if t.tecnico_inactivo %}<span class="hist-inactivo" title="El técnico fue desactivado: reasigna el ticket">Inactivo</span>{% endif %}</td>
           <td><span class="state-badge" data-state="{{ t.estado }}">{{ t.estado }}</span></td>
           <td><span class="sla sla-{{ t.sla.clase }}"><strong>{{ t.sla.texto.split(' · ')[0] }}</strong>{{
               t.sla.texto.split(' · ')[1] }}</span></td>
           <td class="hist-celda-acciones">
             <div class="hist-acciones">
               <a class="row-action" href="{{ url_for('historial.ver_historial', ticket_id=t.id) }}">Ver historial</a>
-              {% if usuario_actual.rol == 'Administrador' and t.estado != 'Cerrado' %}
+              {% if t.puede_asignar %}
+              {# "Quitar asignación" va dentro del modal de Reasignar para que la fila quepa en una línea #}
               <button type="button" class="row-action btn-asignar" data-id="{{ t.id }}" data-asunto="{{ t.asunto }}"
-                data-tecnico="{{ t.tecnico_id or '' }}" data-bs-toggle="modal" data-bs-target="#modal-asignar">{{
-                'Reasignar' if t.tecnico else 'Asignar' }}</button>
+                data-tecnico="{{ t.tecnico_id or '' }}" data-nombre-tecnico="{{ t.tecnico or '' }}"
+                data-puede-quitar="{{ 1 if t.puede_quitar else '' }}" data-bs-toggle="modal"
+                data-bs-target="#modal-asignar">{{ 'Reasignar' if t.tecnico else 'Asignar' }}</button>
               {% endif %}
               {% if t.puede_estado %}
               <button type="button" class="row-action btn-estado" data-id="{{ t.id }}" data-asunto="{{ t.asunto }}"
@@ -97,7 +105,6 @@
       </tbody>
     </table>
   </div>
-  <p class="table-count">{{ tickets|length }} ticket(s)</p>
 </div>
 
 {% include "historial/_modales.html" %}
