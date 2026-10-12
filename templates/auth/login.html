@@ -38,21 +38,6 @@
             aria-label="Cerrar aviso">&times;</button></div>
         {% endfor %}{% endwith %}
         <form class="login-form" id="loginForm" method="post" action="{{ url_for('auth.procesar_login') }}" novalidate>
-          <fieldset class="role-picker">
-            <legend>Acceder como</legend>
-            <div class="role-options">
-              <label class="role-option"><input type="radio" name="role" value="Administrador" required {% if
-                  role=='Administrador' %}checked{% endif %}><span class="role-face"><i class="bi bi-shield-check icon"
-                    aria-hidden="true"></i><span>Administrador</span></span></label><label class="role-option"><input
-                  type="radio" name="role" value="Técnico" required {% if role=='Técnico' %}checked{% endif %}><span
-                  class="role-face"><i class="bi bi-tools icon"
-                    aria-hidden="true"></i><span>Técnico</span></span></label><label class="role-option"><input
-                  type="radio" name="role" value="Solicitante" required {% if role=='Solicitante' %}checked{% endif
-                  %}><span class="role-face"><i class="bi bi-person icon"
-                    aria-hidden="true"></i><span>Solicitante</span></span></label>
-            </div>
-            <small id="role-error"></small>
-          </fieldset>
           <div class="login-fields">
             <div class="field form-field"><label class="field-label" for="loginEmail">Correo electrónico</label>
               <div class="input-wrap"><i class="bi bi-envelope icon" aria-hidden="true"></i><input class="field-input"

@@ -61,7 +61,7 @@ const checkEmail = () => {
     return false;
 };
 const checkPassword = () => {
-    const v = passwordEl.value.trim();
+    const v = passwordEl.value;
     if (editando && v === '') { clearField(passwordEl); return true; }   // vacía = conservar la actual
     if (!isRequired(v)) showError(passwordEl, 'La contraseña no puede estar vacía.');
     else if (!isPasswordSecure(v)) showError(passwordEl, 'Mínimo 8 caracteres con minúscula, mayúscula, número y símbolo (!@#$%^&*).');
@@ -69,7 +69,7 @@ const checkPassword = () => {
     return false;
 };
 const checkConfirmPassword = () => {
-    const c = confirmPasswordEl.value.trim(), p = passwordEl.value.trim();
+    const c = confirmPasswordEl.value, p = passwordEl.value;
     if (editando && p === '' && c === '') { clearField(confirmPasswordEl); return true; }
     if (!isRequired(c)) showError(confirmPasswordEl, 'Escribe la contraseña otra vez.');
     else if (p !== c) showError(confirmPasswordEl, 'Las contraseñas no coinciden.');
@@ -107,12 +107,12 @@ const enviarFormulario = async () => {
     try {
         const response = await fetch('/procesar_usuario', { method: 'POST', body: new FormData(form) });
         const r = await response.json();
-        if (r.ok) {
-            $('mensaje').innerHTML = '<div class="alert alert-success mb-0">' + r.mensaje + '</div>';
+        if (r.code === 1) {
+            $('mensaje').innerHTML = '<div class="alert alert-success mb-0">' + r.msge + '</div>';
             setTimeout(() => location.reload(), 800);
             return;
         }
-        $('mensaje').innerHTML = '<div class="alert alert-danger mb-0">' + r.mensaje + '</div>';
+        $('mensaje').innerHTML = '<div class="alert alert-danger mb-0">' + r.msge + '</div>';
     } catch (error) {
         console.error(error);
         $('mensaje').innerHTML = '<div class="alert alert-danger mb-0">Error al conectar con el servidor.</div>';
@@ -144,3 +144,32 @@ form.addEventListener('input', debounce(e => {
         case 'confirm-password': checkConfirmPassword(); break;
     }
 }));
+
+
+// Estado y eliminación usan la API REST del mismo módulo auth.
+async function accionUsuario(boton, eliminar) {
+    const id = boton.dataset.id;
+    const pregunta = eliminar
+        ? '¿Eliminar definitivamente a ' + boton.dataset.nombre + '? Si tiene actividad, deberás desactivarlo.'
+        : '¿Deseas ' + (boton.dataset.activo === '1' ? 'activar' : 'desactivar') + ' esta cuenta?';
+    if (!window.confirm(pregunta)) return;
+    boton.disabled = true;
+    const aviso = $('acciones-mensaje');
+    try {
+        const opciones = eliminar ? { method: 'DELETE' } : {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ activo: Number(boton.dataset.activo) })
+        };
+        const response = await fetch('/api/usuarios/' + id + (eliminar ? '' : '/estado'), opciones);
+        const r = await response.json();
+        aviso.className = 'alert ' + (r.code === 1 ? 'alert-success' : 'alert-danger');
+        aviso.textContent = r.msge;
+        if (r.code === 1) { setTimeout(() => location.reload(), 700); return; }
+    } catch (error) {
+        aviso.className = 'alert alert-danger';
+        aviso.textContent = 'Error al conectar con el servidor.';
+    }
+    boton.disabled = false;
+}
+document.querySelectorAll('.btn-eliminar').forEach(b => b.addEventListener('click', () => accionUsuario(b, true)));
+document.querySelectorAll('.btn-estado').forEach(b => b.addEventListener('click', () => accionUsuario(b, false)));

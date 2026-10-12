@@ -36,6 +36,7 @@
   </div>
 </form>
 
+<div id="acciones-mensaje" role="alert" aria-live="polite"></div>
 <p class="table-count users-total">{{ usuarios|length }} usuario(s)</p>
 <div class="users-table-wrap">
   <table class="users-table">
@@ -61,7 +62,14 @@
         <td><button class="secondary-button button-sm btn-editar" data-id="{{ u.id }}" data-nombres="{{ u.nombres }}"
             data-apellidos="{{ u.apellidos }}" data-dni="{{ u.dni or '' }}" data-telefono="{{ u.telefono or '' }}"
             data-email="{{ u.email }}" data-rol="{{ u.rol }}" data-area="{{ u.area_id or '' }}"
-            data-activo="{{ u.activo }}" data-bs-toggle="modal" data-bs-target="#modal-usuario">Editar</button></td>
+            data-activo="{{ u.activo }}" data-bs-toggle="modal" data-bs-target="#modal-usuario">Editar</button>
+          {% if u.id != session['usuario_id'] %}
+          <button type="button" class="secondary-button button-sm btn-estado" data-id="{{ u.id }}"
+            data-activo="{{ 0 if u.activo else 1 }}">{{ 'Desactivar' if u.activo else 'Activar' }}</button>
+          <button type="button" class="secondary-button button-sm btn-eliminar" data-id="{{ u.id }}"
+            data-nombre="{{ u.nombres }} {{ u.apellidos }}">Eliminar</button>
+          {% endif %}
+        </td>
       </tr>
       {% else %}
       <tr>
