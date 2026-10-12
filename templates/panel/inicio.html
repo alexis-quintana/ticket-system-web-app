@@ -1,8 +1,10 @@
 {% extends "base_app.html" %}
+{% from "_navegacion.html" import migas with context %}
 {% block titulo %}Inicio{% endblock %}
 
 {% block contenido %}
 <section id="page-content" tabindex="-1" class="tickets-page" aria-labelledby="page-title">
+  {{ migas([('Inicio', none)]) }}
   <h1 id="page-title" tabindex="-1">Hola, {{ usuario_actual.nombre.split()[0] }}</h1>
   <p class="page-description">
     {% if usuario_actual.rol == 'Administrador' %}Asigna los tickets nuevos y vigila los plazos de atención de tu empresa.

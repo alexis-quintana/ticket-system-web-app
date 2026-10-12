@@ -52,6 +52,9 @@
   </div>
   {% endif %}
 
+  {% if tickets %}
+  <p class="table-count">{{ tickets|length }} ticket(s)</p>
+  {% endif %}
   <div class="table-card">
     {% if tickets %}
     <div class="table-scroll">
@@ -99,7 +102,6 @@
         </tbody>
       </table>
     </div>
-    <p class="table-count">{{ tickets|length }} ticket(s)</p>
     {% elif f.q or f.estado or f.prioridad %}
     <div class="empty-state">
       <h2>Sin resultados para estos filtros</h2>
