@@ -82,7 +82,7 @@
               {% if t.puede_asignar %}
               {# "Quitar asignación" va dentro del modal de Reasignar para que la fila quepa en una línea #}
               <button type="button" class="row-action btn-asignar" data-id="{{ t.id }}" data-asunto="{{ t.asunto }}"
-                data-tecnico="{{ t.tecnico_id or '' }}" data-nombre-tecnico="{{ t.tecnico or '' }}"
+                data-tecnico="{{ t.tecnico_id or '' }}" data-nombre-tecnico="{{ t.tecnico or '' }}" data-prioridad="{{ t.prioridad }}"
                 data-puede-quitar="{{ 1 if t.puede_quitar else '' }}" data-bs-toggle="modal"
                 data-bs-target="#modal-asignar">{{ 'Reasignar' if t.tecnico else 'Asignar' }}</button>
               {% endif %}

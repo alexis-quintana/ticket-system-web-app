@@ -88,7 +88,8 @@ def _accion(funcion, *args):
 @roles_required("Administrador")
 def asignar(ticket_id):
     return _accion(Historial.asignar, ticket_id, usuario_sesion(),
-                   request.form.get("tecnico_id", ""), request.form.get("comentario", ""))
+                   request.form.get("tecnico_id", ""), request.form.get("comentario", ""),
+                   request.form.get("prioridad", ""))
 
 
 @bp.route("/tickets/<int:ticket_id>/quitar_asignacion", methods=["POST"])
@@ -117,6 +118,7 @@ def cambiar_estado(ticket_id):
 #   GET    /api/tickets/<id>/historial            línea de tiempo del ticket
 #   GET    /api/historial/<id>                    detalle de un evento
 #   POST   /api/tickets/<id>/asignacion           asignar (ticket SIN técnico)   {"tecnico_id": 3, "comentario": "..."}
+#                                                 opcional "prioridad": confirma o ajusta la del solicitante (si cambia, el comentario es obligatorio)
 #   POST   /api/tickets/<id>/reasignacion         reasignar (ticket CON técnico) {"tecnico_id": 4, "comentario": "..."}
 #   POST   /api/tickets/<id>/quitar_asignacion    quitar la asignación (comentario opcional)
 #   POST   /api/tickets/<id>/estado               cambiar estado {"estado": "En proceso", "comentario": "..."}
@@ -202,7 +204,8 @@ def _asignar_api(ticket_id, primera):
         raise HistorialError("El ticket ya tiene técnico. Usa /reasignacion para cambiarlo.", 409)
     if not primera and not actual["tecnico_id"]:
         raise HistorialError("El ticket no tiene técnico. Usa /asignacion para asignarlo.", 409)
-    mensaje = Historial.asignar(ticket_id, usuario, datos.get("tecnico_id", ""), datos.get("comentario", ""))
+    mensaje = Historial.asignar(ticket_id, usuario, datos.get("tecnico_id", ""), datos.get("comentario", ""),
+                                datos.get("prioridad", ""))
     t = Historial.ticket_a_diccionario(Historial.ticket(ticket_id, usuario))
     return respuesta(1, t, mensaje, 201 if primera else 200)
 

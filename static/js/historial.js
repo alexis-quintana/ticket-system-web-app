@@ -106,6 +106,15 @@ if (formAsignar) {
         if (!tecnico.value) { showError(tecnico, 'Selecciona un técnico.'); return false; }
         showSuccess(tecnico); return true;
     };
+    const prioridad = $('asignar-prioridad'), comentarioAsignar = $('asignar-comentario');
+    let prioridadActual = '';
+    // Si el administrador cambia la prioridad, el comentario (motivo) pasa a ser obligatorio
+    const checkMotivo = () => {
+        if (prioridad.value !== prioridadActual && !comentarioAsignar.value.trim()) {
+            showError(comentarioAsignar, 'Escribe por qué cambias la prioridad.'); return false;
+        }
+        clearField(comentarioAsignar); return true;
+    };
     let botonAsignar = null;   // botón de la fila que abrió el modal (para "Quitar asignación")
     document.querySelectorAll('.btn-asignar').forEach(b => b.addEventListener('click', () => {
         botonAsignar = b;
@@ -116,6 +125,11 @@ if (formAsignar) {
         $('modal-asignar-titulo').textContent = b.dataset.tecnico ? 'Reasignar ticket' : 'Asignar ticket';
         $('asignar-ticket').textContent = `TK-${String(b.dataset.id).padStart(4, '0')} · ${b.dataset.asunto}`;
         tecnico.value = b.dataset.tecnico || '';
+        clearField(comentarioAsignar);
+        prioridadActual = b.dataset.prioridad || '';
+        prioridad.value = prioridadActual;
+        $('asignar-prioridad-ayuda').textContent = 'Indicada por el solicitante: ' + prioridadActual
+            + '. Confírmala o ajústala según el impacto real.';
         $('asignar-quitar-zona').hidden = !b.dataset.puedeQuitar;
     }));
     // Desde el modal de Reasignar se pasa al de Quitar asignación con los mismos datos del ticket
@@ -131,10 +145,13 @@ if (formAsignar) {
     formAsignar.addEventListener('submit', e => {
         e.preventDefault();
         if (!checkTecnico()) { tecnico.focus(); return; }
+        if (!checkMotivo()) { comentarioAsignar.focus(); return; }
         enviar(`/tickets/${ticketActual}/asignar`, formAsignar, $('asignar-guardar'),
             $('asignar-mensaje'), 'Asignar ticket');
     });
     tecnico.addEventListener('change', checkTecnico);
+    prioridad.addEventListener('change', checkMotivo);
+    comentarioAsignar.addEventListener('input', debounce(checkMotivo));
 }
 
 // ---------- Quitar asignación (el comentario es opcional) ----------

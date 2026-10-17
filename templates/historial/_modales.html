@@ -54,9 +54,15 @@
           <span class="detail-muted">¿Debe quedar sin técnico?</span>
           <button type="button" class="secondary-button hist-quitar" id="asignar-quitar">Quitar asignación</button>
         </div>
+        <div class="form-field"><label class="form-label" for="asignar-prioridad">Prioridad</label>
+          <select class="form-select" id="asignar-prioridad" name="prioridad">
+            {% for p in ('Alta', 'Media', 'Baja') %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+          </select><small></small>
+          <span class="detail-muted" id="asignar-prioridad-ayuda"></span>
+        </div>
         <div class="form-field"><label class="form-label" for="asignar-comentario">Comentario (opcional)</label>
           <textarea class="form-control" id="asignar-comentario" name="comentario" rows="3" maxlength="1000"
-            placeholder="Indicaciones para el técnico"></textarea>
+            placeholder="Indicaciones para el técnico"></textarea><small></small>
         </div>
         <div id="asignar-mensaje" role="status"></div>
       </div>
