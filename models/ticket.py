@@ -157,16 +157,20 @@ class Ticket:
         estado, detalle = s["texto"].split(" · ")
         return {"clase": SLA_CSS[s["color"]], "estado": estado, "detalle": detalle}
 
+    # Requisito del Jefe de TI: solo quien registró el ticket puede editarlo, y solo antes de que se asigne a un técnico.
+    # El técnico y el administrador no cambian el contenido: hacen seguimiento con estados y comentarios.
     def puede_editar(self, usuario):
-        """Se edita solo mientras está Abierto, y solo su solicitante o un Administrador."""
-        return self.estado == "Abierto" and (usuario["rol"] == "Administrador"
-                                             or usuario["usuario_id"] == self.solicitante_id)
+        return (self.estado == "Abierto" and not self.tecnico_id
+                and usuario["usuario_id"] == self.solicitante_id)
 
     def validar_edicion(self, usuario):
+        if usuario["usuario_id"] != self.solicitante_id:
+            raise TicketError("Solo quien registró el ticket puede modificarlo. Puedes dejar un comentario.", 403)
+        if self.tecnico_id:
+            raise TicketError("El ticket ya fue asignado a un técnico y no se puede modificar. "
+                              "Agrega la información nueva con un comentario.", 403)
         if self.estado != "Abierto":
             raise TicketError("Solo se puede modificar un ticket en estado Abierto.", 403)
-        if not self.puede_editar(usuario):
-            raise TicketError("No tienes permiso para modificar este ticket.", 403)
 
     @staticmethod
     def validar_datos(datos, archivos, fotos_actuales=0):
@@ -293,10 +297,19 @@ class Ticket:
         con = obtener_conexion()
         try:
             with con.cursor() as cur:
+                # se vuelve a revisar dentro de la transacción por si lo asignaron mientras se editaba
+                cur.execute("SELECT estado, tecnico_id FROM tickets WHERE id=%s AND empresa_id=%s FOR UPDATE",
+                            (self.id, self.empresa_id))
+                actual = cur.fetchone()
+                if not actual or actual["estado"] != "Abierto" or actual["tecnico_id"]:
+                    raise TicketError("El ticket ya fue asignado mientras lo editabas y no se puede modificar. "
+                                      "Agrega la información nueva con un comentario.", 409)
                 Ticket._validar_categoria(cur, categoria_id, self.empresa_id)
                 cur.execute("UPDATE tickets SET asunto=%s, descripcion=%s, categoria_id=%s, prioridad=%s "
-                            "WHERE id=%s AND empresa_id=%s AND estado='Abierto'",
-                            (asunto, descripcion, categoria_id, prioridad, self.id, self.empresa_id))
+                            "WHERE id=%s AND empresa_id=%s AND estado='Abierto' AND tecnico_id IS NULL "
+                            "AND solicitante_id=%s",
+                            (asunto, descripcion, categoria_id, prioridad, self.id, self.empresa_id,
+                             usuario["usuario_id"]))
                 Evidencia.guardar_archivos(cur, self.id, self.empresa_id, fotos, guardados)
                 from models.historial import Historial
                 Historial.registrar_cambio_prioridad(cur, usuario, self.id, self.estado,

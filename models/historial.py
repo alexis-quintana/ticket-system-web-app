@@ -278,7 +278,7 @@ class Historial:
     @staticmethod
     def _bloquear_ticket(cur, ticket_id, empresa_id):
         """Lee el ticket con FOR UPDATE para que dos personas no lo cambien a la vez."""
-        cur.execute("SELECT id, estado, tecnico_id, solicitante_id FROM tickets "
+        cur.execute("SELECT id, estado, tecnico_id, solicitante_id, prioridad FROM tickets "
                     "WHERE id=%s AND empresa_id=%s FOR UPDATE", (ticket_id, empresa_id))
         t = cur.fetchone()
         if not t:
@@ -309,12 +309,15 @@ class Historial:
                              "Prioridad cambiada de " + prioridad_anterior + " a " + prioridad_nueva + ".")
 
     @staticmethod
-    def asignar(ticket_id, usuario, tecnico_id, comentario=""):
+    def asignar(ticket_id, usuario, tecnico_id, comentario="", prioridad=""):
         """Asigna (o reasigna) un técnico. Crea un evento 'Asignación'. Devuelve el mensaje."""
         tecnico_id = str(tecnico_id or "").strip()
         comentario = str(comentario or "").strip()
+        prioridad = str(prioridad or "").strip()
         if not tecnico_id.isdigit():
             raise HistorialError("Selecciona un técnico.")
+        if prioridad and prioridad not in PRIORIDADES:
+            raise HistorialError("Selecciona una prioridad válida.")
         if len(comentario) > MAX_COMENTARIO:
             raise HistorialError("El comentario no puede superar 1000 caracteres.")
         emp = usuario["empresa_id"]
@@ -331,15 +334,27 @@ class Historial:
                 tec = next((x for x in Historial._tecnicos(cur, emp) if x["id"] == int(tecnico_id)), None)
                 if not tec:
                     raise HistorialError("El técnico seleccionado no es válido.")
+                # El administrador confirma la prioridad que sugirió el solicitante o la ajusta (con motivo)
+                cambia_prioridad = bool(prioridad) and prioridad != t["prioridad"]
+                if cambia_prioridad and not comentario:
+                    raise HistorialError("Escribe en el comentario por qué cambias la prioridad de "
+                                         + t["prioridad"] + " a " + prioridad + ".")
                 reasignacion = bool(t["tecnico_id"])
                 texto = ("Ticket reasignado a " if reasignacion else "Ticket asignado a ") + tec["nombre"] + "."
+                if cambia_prioridad:
+                    texto += " Prioridad ajustada de " + t["prioridad"] + " a " + prioridad + "."
                 comentario = comentario or texto
-                cur.execute("UPDATE tickets SET tecnico_id=%s WHERE id=%s AND empresa_id=%s",
-                            (tec["id"], ticket_id, emp))
+                cur.execute("UPDATE tickets SET tecnico_id=%s, prioridad=%s WHERE id=%s AND empresa_id=%s",
+                            (tec["id"], prioridad if cambia_prioridad else t["prioridad"], ticket_id, emp))
                 # se guarda también quién lo tenía antes (NULL si es la primera asignación)
                 Historial._registrar(cur, usuario, ticket_id, "Asignación",
                                      t["estado"], t["estado"], tec["id"], comentario,
                                      tecnico_anterior_id=t["tecnico_id"])
+                if cambia_prioridad:
+                    Historial._registrar(cur, usuario, ticket_id, "Cambio de prioridad",
+                                         t["estado"], t["estado"], tec["id"],
+                                         "Prioridad ajustada de " + t["prioridad"] + " a " + prioridad
+                                         + " al asignar: " + comentario)
             con.commit()
         except Exception:
             con.rollback()

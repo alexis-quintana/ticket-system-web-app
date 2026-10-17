@@ -77,7 +77,8 @@ none)]) }}
       {% endif %}
       {% if t.puede_asignar %}
       <button type="button" class="button btn-asignar" data-id="{{ t.id }}" data-asunto="{{ t.asunto }}"
-        data-tecnico="{{ t.tecnico_id or '' }}" data-bs-toggle="modal" data-bs-target="#modal-asignar">
+        data-tecnico="{{ t.tecnico_id or '' }}" data-prioridad="{{ t.prioridad }}" data-bs-toggle="modal"
+        data-bs-target="#modal-asignar">
         {{ 'Reasignar técnico' if t.tecnico else 'Asignar técnico' }}</button>
       {% endif %}
       {% if t.puede_quitar %}
